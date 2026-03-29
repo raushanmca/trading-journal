@@ -64,7 +64,7 @@ export default function JournalCard() {
       return;
     }
 
-    await axios.post("http://localhost:5000/api/journal", {
+    await axios.post("https://trading-journal-pd0x.onrender.com/api/journal", {
       date: form.date,
       instrument: form.instrument,
       pnl: Number(form.pnl),

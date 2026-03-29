@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/journal")
+      .get("https://trading-journal-pd0x.onrender.com/api/journal")
       .then((res) => {
         setTrades(res.data);
         setLoading(false);
