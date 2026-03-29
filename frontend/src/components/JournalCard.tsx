@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import axios from "axios";
+import { getAuthHeaders } from "../utils/auth";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function JournalCard() {
@@ -60,23 +61,36 @@ export default function JournalCard() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const authHeaders = getAuthHeaders();
+
+    if (!authHeaders.Authorization) {
+      alert("Please sign in to save journal entries");
+      return;
+    }
+
     if (!form.date || !form.instrument || !form.pnl) {
       alert("Please fill Date, Instrument, and PnL");
       return;
     }
 
-    await axios.post(`${BASE_URL}/api/journal`, {
-      date: form.date,
-      instrument: form.instrument,
-      pnl: Number(form.pnl),
-      rating: form.rating,
-      mistakes: form.mistakes
-        ? form.mistakes
-            .split(",")
-            .map((m) => m.trim())
-            .filter(Boolean)
-        : [],
-    });
+    await axios.post(
+      `${BASE_URL}/api/journal`,
+      {
+        date: form.date,
+        instrument: form.instrument,
+        pnl: Number(form.pnl),
+        rating: form.rating,
+        mistakes: form.mistakes
+          ? form.mistakes
+              .split(",")
+              .map((m) => m.trim())
+              .filter(Boolean)
+          : [],
+      },
+      {
+        headers: authHeaders,
+      },
+    );
 
     alert("Journal entry saved successfully!");
 

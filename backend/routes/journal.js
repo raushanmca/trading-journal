@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const Journal = require("../models/Journal");
+const requireAuth = require("../middleware/auth");
 
 // ✅ Create Journal Entry
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
-    const journal = new Journal(req.body);
+    const journal = new Journal({
+      ...req.body,
+      userId: req.user.userId,
+      userEmail: req.user.email || "",
+    });
     const saved = await journal.save();
     res.json(saved);
   } catch (err) {
@@ -14,12 +19,11 @@ router.post("/", async (req, res) => {
 });
 
 // ✅ Get All Journals
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    const data = await Journal.find().sort({ createdAt: -1 });
-    if (data.length === 0) {
-      return res.status(404).json({ message: "No journal entries found" });
-    }
+    const data = await Journal.find({ userId: req.user.userId }).sort({
+      createdAt: -1,
+    });
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

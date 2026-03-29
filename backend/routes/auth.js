@@ -13,6 +13,16 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-key";
 router.post("/google", async (req, res) => {
   const { token } = req.body;
 
+  if (!GOOGLE_CLIENT_ID) {
+    return res
+      .status(500)
+      .json({ message: "GOOGLE_CLIENT_ID is not configured" });
+  }
+
+  if (!token) {
+    return res.status(400).json({ message: "Google token is missing" });
+  }
+
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -31,16 +41,18 @@ router.post("/google", async (req, res) => {
 
     // TODO: Save or find user in your database (MongoDB / PostgreSQL)
 
-    const token = jwt.sign(
+    const authToken = jwt.sign(
       { userId: payload.sub, email: payload.email },
       JWT_SECRET,
       { expiresIn: "7d" },
     );
 
-    res.json({ token, user });
+    res.json({ token: authToken, user });
   } catch (err) {
-    console.error(err);
-    res.status(401).json({ message: "Google authentication failed" });
+    console.error("Google authentication failed:", err.message);
+    res.status(401).json({
+      message: err.message || "Google authentication failed",
+    });
   }
 });
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
+import { getAuthHeaders } from "../utils/auth";
 const BASE_URL = import.meta.env.VITE_API_URL;
 import {
   Chart as ChartJS,
@@ -37,10 +38,20 @@ interface Trade {
 export default function Dashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
+    const authHeaders = getAuthHeaders();
+
+    if (!authHeaders.Authorization) {
+      setLoading(false);
+      return;
+    }
+
     axios
-      .get(`${BASE_URL}/api/journal`)
+      .get(`${BASE_URL}/api/journal`, {
+        headers: authHeaders,
+      })
       .then((res) => {
         setTrades(res.data);
         setLoading(false);
@@ -49,6 +60,19 @@ export default function Dashboard() {
         console.error(err);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (!storedUser) return;
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      setUserName(parsedUser?.name || "");
+    } catch (error) {
+      console.error("Failed to parse stored user", error);
+    }
   }, []);
 
   // Calculate KPIs
@@ -129,6 +153,11 @@ export default function Dashboard() {
       <p style={{ color: "#64748b", marginBottom: "24px" }}>
         Overview of your trading performance
       </p>
+      {userName ? (
+        <p style={{ color: "#0f172a", marginTop: "-8px", marginBottom: "24px" }}>
+          Logged in as {userName}
+        </p>
+      ) : null}
 
       {/* KPI Cards */}
       <div

@@ -2,6 +2,15 @@ const mongoose = require("mongoose");
 
 const JournalSchema = new mongoose.Schema(
   {
+    userId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    userEmail: {
+      type: String,
+      default: "",
+    },
     date: String,
     marketBias: String,
     instrument: String,

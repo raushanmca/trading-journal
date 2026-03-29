@@ -6,7 +6,7 @@ const connectDB = async () => {
     console.log("✅ MongoDB Connected");
   } catch (error) {
     console.error("❌ DB Error:", error.message);
-    process.exit(1);
+    console.warn("⚠️ Continuing without MongoDB. Auth routes can still work, but journal data will be unavailable until the database connects.");
   }
 };
 

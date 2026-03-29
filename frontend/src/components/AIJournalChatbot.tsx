@@ -1,5 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
+import { getAuthHeaders } from "../utils/auth";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 interface JournalEntry {
   date: string;
@@ -107,11 +110,30 @@ export default function AIJournalChatbot() {
   const confirmAndSave = async () => {
     if (!parsedEntry) return;
 
+    const authHeaders = getAuthHeaders();
+
+    if (!authHeaders.Authorization) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant" as const,
+          content: "Please sign in before saving journal entries.",
+        },
+      ]);
+      return;
+    }
+
     try {
-      await axios.post("http://localhost:5000/api/journal", {
-        ...parsedEntry,
-        mistakes: parsedEntry.mistakes,
-      });
+      await axios.post(
+        `${BASE_URL}/api/journal`,
+        {
+          ...parsedEntry,
+          mistakes: parsedEntry.mistakes,
+        },
+        {
+          headers: authHeaders,
+        },
+      );
 
       setMessages((prev) => [
         ...prev,
@@ -128,8 +150,7 @@ export default function AIJournalChatbot() {
         ...prev,
         {
           role: "assistant" as const,
-          content:
-            "❌ Failed to save entry. Please try again or use the manual form.",
+          content: "❌ Failed to save entry. Please try again or sign in again.",
         },
       ]);
     }
