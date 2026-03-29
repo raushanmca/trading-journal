@@ -17,6 +17,26 @@ export function getStoredUser() {
   }
 }
 
+export function isTrialExpired(user = getStoredUser()) {
+  return Boolean(user?.isTrialExpired);
+}
+
+export function getTrialDaysRemaining(user = getStoredUser()) {
+  if (!user?.trialEndsAt || user?.isOwner) {
+    return null;
+  }
+
+  const now = new Date();
+  const trialEndsAt = new Date(user.trialEndsAt);
+  const millisecondsRemaining = trialEndsAt.getTime() - now.getTime();
+
+  if (millisecondsRemaining <= 0) {
+    return 0;
+  }
+
+  return Math.ceil(millisecondsRemaining / (1000 * 60 * 60 * 24));
+}
+
 export function getUserStorageKey(prefix: string) {
   const user = getStoredUser();
   const identity = user?.email || user?.name;

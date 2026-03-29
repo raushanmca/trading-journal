@@ -17,6 +17,12 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       window.dispatchEvent(new Event("auth-changed"));
 
+      if (res.data.user?.isTrialExpired) {
+        alert("Your 30-day trial has expired. Please contact support.");
+        navigate("/dashboard");
+        return;
+      }
+
       alert("Login successful!");
       navigate("/dashboard"); // or wherever your main app is
     } catch (err) {

@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
-import { getAuthHeaders } from "../utils/auth";
+import {
+  getAuthHeaders,
+  getStoredUser,
+  getTrialDaysRemaining,
+  isTrialExpired,
+} from "../utils/auth";
 const BASE_URL = import.meta.env.VITE_API_URL;
 import {
   Chart as ChartJS,
@@ -39,8 +44,30 @@ export default function Dashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [trialEndsAt, setTrialEndsAt] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
+    const storedUser = getStoredUser();
+
+    if (storedUser) {
+      setUserName(storedUser?.name || "");
+      setUserEmail(storedUser?.email || "");
+      setTrialEndsAt(storedUser?.trialEndsAt || "");
+      setIsOwner(Boolean(storedUser?.isOwner));
+      setTrialDaysRemaining(getTrialDaysRemaining(storedUser));
+    }
+
+    if (isTrialExpired(storedUser)) {
+      setLoading(false);
+      return;
+    }
+
     const authHeaders = getAuthHeaders();
 
     if (!authHeaders.Authorization) {
@@ -58,21 +85,13 @@ export default function Dashboard() {
       })
       .catch((err) => {
         console.error(err);
+        if (axios.isAxiosError(err)) {
+          setErrorMessage(
+            err.response?.data?.message || "Failed to load your dashboard",
+          );
+        }
         setLoading(false);
       });
-  }, []);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-
-    if (!storedUser) return;
-
-    try {
-      const parsedUser = JSON.parse(storedUser);
-      setUserName(parsedUser?.name || "");
-    } catch (error) {
-      console.error("Failed to parse stored user", error);
-    }
   }, []);
 
   // Calculate KPIs
@@ -147,6 +166,55 @@ export default function Dashboard() {
       </div>
     );
 
+  if (isTrialExpired()) {
+    return (
+      <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
+        <div
+          className="card"
+          style={{
+            padding: "32px",
+            border: "1px solid #fecaca",
+            background:
+              "linear-gradient(180deg, rgba(254, 242, 242, 0.9) 0%, #ffffff 100%)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              padding: "6px 10px",
+              borderRadius: "999px",
+              background: "#fee2e2",
+              color: "#b91c1c",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: "14px",
+            }}
+          >
+            Trial Expired
+          </div>
+          <h1 style={{ margin: "0 0 10px 0", color: "#7f1d1d" }}>
+            Your 30-day trial has ended
+          </h1>
+          <p style={{ color: "#7c2d12", fontSize: "16px", lineHeight: 1.7 }}>
+            {userName || userEmail || "Your account"} reached the end of its
+            free access period on{" "}
+            {trialEndsAt
+              ? new Date(trialEndsAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "the configured expiry date"}
+            . Contact support or upgrade access to continue using the journal
+            and dashboard.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
       <h1 style={{ marginBottom: "8px" }}>Trading Dashboard</h1>
@@ -157,6 +225,62 @@ export default function Dashboard() {
         <p style={{ color: "#0f172a", marginTop: "-8px", marginBottom: "24px" }}>
           Logged in as {userName}
         </p>
+      ) : null}
+      {isOwner ? (
+        <p style={{ color: "#0f766e", marginTop: "-16px", marginBottom: "24px" }}>
+          Owner access is active for {userEmail || "this account"}.
+        </p>
+      ) : trialDaysRemaining !== null ? (
+        <div
+          className="card"
+          style={{
+            marginTop: "-8px",
+            marginBottom: "24px",
+            border: "1px solid #bfdbfe",
+            background: "linear-gradient(180deg, #eff6ff 0%, #ffffff 100%)",
+          }}
+        >
+          <div
+            style={{
+              color: "#1d4ed8",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            Trial Access
+          </div>
+          <div style={{ color: "#0f172a", fontSize: "18px", fontWeight: 700 }}>
+            {trialDaysRemaining === 0
+              ? "Your trial has ended"
+              : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining`}
+          </div>
+          <div style={{ color: "#475569", marginTop: "6px", fontSize: "14px" }}>
+            Trial end date:{" "}
+            {trialEndsAt
+              ? new Date(trialEndsAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "Not available"}
+          </div>
+        </div>
+      ) : null}
+      {errorMessage ? (
+        <div
+          className="card"
+          style={{
+            marginBottom: "24px",
+            border: "1px solid #fecaca",
+            background: "#fff7f7",
+            color: "#b91c1c",
+          }}
+        >
+          {errorMessage}
+        </div>
       ) : null}
 
       {/* KPI Cards */}

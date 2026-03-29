@@ -12,6 +12,12 @@ interface JournalEntry {
   mistakes: string[];
 }
 
+interface AssistantResponse {
+  message: string;
+  parsed: JournalEntry;
+  source?: string;
+}
+
 export default function AIJournalChatbot() {
   const [messages, setMessages] = useState([
     {
@@ -29,6 +35,8 @@ export default function AIJournalChatbot() {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    const authHeaders = getAuthHeaders();
+
     const userMessage = input.trim();
     setMessages((prev) => [
       ...prev,
@@ -38,73 +46,52 @@ export default function AIJournalChatbot() {
     setIsLoading(true);
 
     try {
-      // Simulate AI parsing (Replace with real LLM call later)
-      const response = await simulateAIParse(userMessage);
+      if (!authHeaders.Authorization) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant" as const,
+            content: "Please sign in to use the AI journal assistant.",
+          },
+        ]);
+        return;
+      }
+
+      const { data } = await axios.post<AssistantResponse>(
+        `${BASE_URL}/api/ai/journal-assistant`,
+        {
+          message: userMessage,
+        },
+        {
+          headers: authHeaders,
+        },
+      );
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant" as const, content: response.message },
+        { role: "assistant" as const, content: data.message },
       ]);
 
-      if (response.parsed) {
-        setParsedEntry(response.parsed);
+      if (data.parsed) {
+        setParsedEntry(data.parsed);
         setShowConfirm(true);
       }
     } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message ||
+          "Sorry, I couldn't process that right now. Please try again."
+        : "Sorry, I couldn't process that right now. Please try again.";
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant" as const,
-          content:
-            "Sorry, I couldn't process that. Could you please describe your trade again?",
+          content: message,
         },
       ]);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const simulateAIParse = async (text: string) => {
-    const lower = text.toLowerCase();
-
-    const instrument =
-      text
-        .match(/(NIFTY|BANKNIFTY|RELIANCE|HDFCBANK|TCS|SBIN|INFY)/i)?.[0]
-        ?.toUpperCase() || "NIFTY";
-    const pnlMatch = text.match(/(\-?\d+)/);
-    const pnl = pnlMatch ? parseInt(pnlMatch[0]) : 0;
-
-    let rating = 3;
-    if (lower.includes("excellent") || lower.includes("perfect")) rating = 5;
-    else if (lower.includes("good")) rating = 4;
-    else if (lower.includes("poor") || lower.includes("bad")) rating = 2;
-
-    const lessons: string[] = [];
-    if (lower.includes("patience") || lower.includes("wait"))
-      lessons.push("Patience - Wait for Setup");
-    if (lower.includes("risk")) lessons.push("Follow Risk Management");
-    if (lower.includes("over") || lower.includes("fomo"))
-      lessons.push("Over Trading");
-    if (lower.includes("revenge")) lessons.push("Revenge Trading");
-    if (lower.includes("disciplined")) lessons.push("Disciplined Entry");
-
-    const entry: JournalEntry = {
-      date: new Date().toISOString().split("T")[0],
-      instrument,
-      pnl,
-      rating,
-      mistakes: lessons.length ? lessons : ["Disciplined Entry"],
-    };
-
-    const message =
-      `I've analyzed your trade:\n\n` +
-      `• Instrument: **${entry.instrument}**\n` +
-      `• PnL: **₹${entry.pnl.toLocaleString()}**\n` +
-      `• Rating: **${entry.rating}/5**\n` +
-      `• Key Points: ${entry.mistakes.join(", ")}\n\n` +
-      `Is this correct? Reply **Yes** to save it, or tell me what to change.`;
-
-    return { message, parsed: entry };
   };
 
   const confirmAndSave = async () => {
@@ -168,7 +155,7 @@ export default function AIJournalChatbot() {
     >
       <h3>AI Journal Assistant</h3>
       <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "16px" }}>
-        Describe your trade in natural English — I'll structure it for you
+        Describe your trade in natural English and I'll turn it into a structured journal entry
       </p>
 
       {/* Chat Area */}

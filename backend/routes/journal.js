@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Journal = require("../models/Journal");
 const requireAuth = require("../middleware/auth");
+const requireActiveTrial = require("../middleware/trial");
 
 // ✅ Create Journal Entry
-router.post("/", requireAuth, async (req, res) => {
+router.post("/", requireAuth, requireActiveTrial, async (req, res) => {
   try {
     const journal = new Journal({
       ...req.body,
@@ -19,7 +20,7 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // ✅ Get All Journals
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, requireActiveTrial, async (req, res) => {
   try {
     const data = await Journal.find({ userId: req.user.userId }).sort({
       createdAt: -1,

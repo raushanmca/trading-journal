@@ -8,6 +8,11 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import {
+  getStoredUser,
+  getTrialDaysRemaining,
+  isTrialExpired,
+} from "./utils/auth";
 
 import JournalForm from "./components/JournalForm";
 import Dashboard from "./components/Dashboard";
@@ -16,17 +21,30 @@ import Login from "./components/Login";
 interface StoredUser {
   name?: string;
   email?: string;
+  isOwner?: boolean;
+  trialStartedAt?: string;
+  trialEndsAt?: string;
+  isTrialExpired?: boolean;
+  trialDays?: number;
 }
 
 function ProtectedRoute({
   isSignedIn,
+  user,
+  allowExpired = false,
   children,
 }: {
   isSignedIn: boolean;
+  user: StoredUser | null;
+  allowExpired?: boolean;
   children: JSX.Element;
 }) {
   if (!isSignedIn) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!allowExpired && isTrialExpired(user)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -39,19 +57,13 @@ function App() {
 
   useEffect(() => {
     const syncUser = () => {
-      const storedUser = localStorage.getItem("user");
+      const storedUser = getStoredUser();
 
       if (!storedUser) {
         setUser(null);
         return;
       }
-
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse stored user", error);
-        setUser(null);
-      }
+      setUser(storedUser);
     };
 
     syncUser();
@@ -82,6 +94,7 @@ function App() {
   }, []);
 
   const isSignedIn = Boolean(user?.name || user?.email);
+  const trialDaysRemaining = getTrialDaysRemaining(user);
   const userLabel = user?.name || user?.email || "Account";
   const userInitials = userLabel
     .split(" ")
@@ -136,6 +149,23 @@ function App() {
               >
                 <Link to="/">Journal</Link>
                 <Link to="/dashboard">Dashboard</Link>
+                {!user?.isOwner && trialDaysRemaining !== null ? (
+                  <div
+                    style={{
+                      padding: "7px 12px",
+                      borderRadius: "999px",
+                      background: trialDaysRemaining <= 5 ? "#fef2f2" : "#eff6ff",
+                      color: trialDaysRemaining <= 5 ? "#b91c1c" : "#1d4ed8",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      letterSpacing: "0.03em",
+                    }}
+                  >
+                    {trialDaysRemaining === 0
+                      ? "Trial expired"
+                      : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -253,6 +283,26 @@ function App() {
                     <div style={{ color: "#64748b", fontSize: "13px" }}>
                       {user?.email}
                     </div>
+                    {!user?.isOwner && user?.trialEndsAt ? (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          color: trialDaysRemaining && trialDaysRemaining <= 5
+                            ? "#b91c1c"
+                            : "#1d4ed8",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {trialDaysRemaining === 0
+                          ? "Trial access expired"
+                          : `Trial ends on ${new Date(user.trialEndsAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}`}
+                      </div>
+                    ) : null}
                   </div>
 
                   <Link
@@ -313,7 +363,7 @@ function App() {
           <Route
             path="/"
             element={
-              <ProtectedRoute isSignedIn={isSignedIn}>
+              <ProtectedRoute isSignedIn={isSignedIn} user={user}>
                 <JournalForm />
               </ProtectedRoute>
             }
@@ -321,7 +371,11 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute isSignedIn={isSignedIn}>
+              <ProtectedRoute
+                isSignedIn={isSignedIn}
+                user={user}
+                allowExpired
+              >
                 <Dashboard />
               </ProtectedRoute>
             }
