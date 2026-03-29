@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function JournalCard() {
   const [form, setForm] = useState({
@@ -64,7 +65,7 @@ export default function JournalCard() {
       return;
     }
 
-    await axios.post("https://trading-journal-pd0x.onrender.com/api/journal", {
+    await axios.post(`${BASE_URL}/api/journal`, {
       date: form.date,
       instrument: form.instrument,
       pnl: Number(form.pnl),

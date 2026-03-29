@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
+const BASE_URL = import.meta.env.VITE_API_URL;
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -39,7 +40,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     axios
-      .get("https://trading-journal-pd0x.onrender.com/api/journal")
+      .get(`${BASE_URL}/api/journal`)
       .then((res) => {
         setTrades(res.data);
         setLoading(false);
