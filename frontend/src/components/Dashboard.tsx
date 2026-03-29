@@ -162,43 +162,18 @@ export default function Dashboard() {
 
   if (loading)
     return (
-      <div style={{ padding: 40, textAlign: "center" }}>
+      <div className="dashboard-page" style={{ textAlign: "center" }}>
         Loading dashboard...
       </div>
     );
 
   if (isTrialExpired()) {
     return (
-      <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-        <div
-          className="card"
-          style={{
-            padding: "32px",
-            border: "1px solid #fecaca",
-            background:
-              "linear-gradient(180deg, rgba(254, 242, 242, 0.9) 0%, #ffffff 100%)",
-          }}
-        >
-          <div
-            style={{
-              display: "inline-block",
-              padding: "6px 10px",
-              borderRadius: "999px",
-              background: "#fee2e2",
-              color: "#b91c1c",
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              marginBottom: "14px",
-            }}
-          >
-            Trial Expired
-          </div>
-          <h1 style={{ margin: "0 0 10px 0", color: "#7f1d1d" }}>
-            Your 30-day trial has ended
-          </h1>
-          <p style={{ color: "#7c2d12", fontSize: "16px", lineHeight: 1.7 }}>
+      <div className="dashboard-page">
+        <div className="dashboard-banner dashboard-banner--danger">
+          <div className="dashboard-banner__label">Trial Expired</div>
+          <h1>Your 30-day trial has ended</h1>
+          <p style={{ color: "#7c2d12", lineHeight: 1.7 }}>
             {userName || userEmail || "Your account"} reached the end of its
             free access period on{" "}
             {trialEndsAt
@@ -217,43 +192,27 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <h1 style={{ marginBottom: "8px" }}>Trading Dashboard</h1>
-      <p style={{ color: "#64748b", marginBottom: "24px" }}>
-        Overview of your trading performance
-      </p>
-      {userName ? (
-        <p style={{ color: "#0f172a", marginTop: "-8px", marginBottom: "24px" }}>
-          Logged in as {userName}
-        </p>
-      ) : null}
+    <div className="dashboard-page">
+      <div className="dashboard-hero">
+        <div>
+          <div className="dashboard-hero__eyebrow">Performance overview</div>
+          <h1>Trading Dashboard</h1>
+          <p>Review the numbers behind your decisions and discipline.</p>
+        </div>
+        <div className="dashboard-hero__meta">
+          {userName ? <strong>Logged in as {userName}</strong> : null}
+          {isOwner ? <span>Owner access is active for {userEmail || "this account"}.</span> : null}
+        </div>
+      </div>
       {isOwner ? (
-        <p style={{ color: "#0f766e", marginTop: "-16px", marginBottom: "24px" }}>
-          Owner access is active for {userEmail || "this account"}.
-        </p>
+        <div className="dashboard-banner">
+          <div className="dashboard-banner__label">Owner Access</div>
+          Full access is active for {userEmail || "this account"}.
+        </div>
       ) : trialDaysRemaining !== null ? (
-        <div
-          className="card"
-          style={{
-            marginTop: "-8px",
-            marginBottom: "24px",
-            border: "1px solid #bfdbfe",
-            background: "linear-gradient(180deg, #eff6ff 0%, #ffffff 100%)",
-          }}
-        >
-          <div
-            style={{
-              color: "#1d4ed8",
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              marginBottom: "8px",
-            }}
-          >
-            Trial Access
-          </div>
-          <div style={{ color: "#0f172a", fontSize: "18px", fontWeight: 700 }}>
+        <div className="dashboard-banner dashboard-banner--trial">
+          <div className="dashboard-banner__label">Trial Access</div>
+          <div style={{ color: "#0f172a", fontSize: "1.2rem", fontWeight: 800 }}>
             {trialDaysRemaining === 0
               ? "Your trial has ended"
               : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining`}
@@ -270,84 +229,56 @@ export default function Dashboard() {
           </div>
         </div>
       ) : null}
-      {errorMessage ? (
-        <div
-          className="card"
-          style={{
-            marginBottom: "24px",
-            border: "1px solid #fecaca",
-            background: "#fff7f7",
-            color: "#b91c1c",
-          }}
-        >
-          {errorMessage}
-        </div>
-      ) : null}
+      {errorMessage ? <div className="dashboard-banner dashboard-banner--danger">{errorMessage}</div> : null}
 
-      {/* KPI Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        <div className="card">
-          <p style={{ color: "#64748b", margin: 0 }}>Total Trades</p>
-          <h2 style={{ margin: "8px 0 0 0", fontSize: "32px" }}>
-            {totalTrades}
-          </h2>
+      <div className="dashboard-kpis">
+        <div className="dashboard-kpi">
+          <span className="dashboard-kpi__label">Total Trades</span>
+          <span className="dashboard-kpi__value">{totalTrades}</span>
         </div>
 
-        <div className="card">
-          <p style={{ color: "#64748b", margin: 0 }}>Net PnL</p>
-          <h2
-            style={{
-              margin: "8px 0 0 0",
-              fontSize: "32px",
-              color: totalPnL >= 0 ? "#22c55e" : "#ef4444",
-            }}
+        <div className="dashboard-kpi">
+          <span className="dashboard-kpi__label">Net PnL</span>
+          <span
+            className={`dashboard-kpi__value ${
+              totalPnL >= 0 ? "dashboard-kpi__value--positive" : "dashboard-kpi__value--negative"
+            }`}
           >
             ₹{totalPnL.toLocaleString()}
-          </h2>
+          </span>
         </div>
 
-        <div className="card">
-          <p style={{ color: "#64748b", margin: 0 }}>Win Rate</p>
-          <h2 style={{ margin: "8px 0 0 0", fontSize: "32px" }}>{winRate}%</h2>
+        <div className="dashboard-kpi">
+          <span className="dashboard-kpi__label">Win Rate</span>
+          <span className="dashboard-kpi__value">{winRate}%</span>
         </div>
 
-        <div className="card">
-          <p style={{ color: "#64748b", margin: 0 }}>Avg Rating</p>
-          <h2 style={{ margin: "8px 0 0 0", fontSize: "32px" }}>
-            {avgRating} ★
-          </h2>
+        <div className="dashboard-kpi">
+          <span className="dashboard-kpi__label">Avg Rating</span>
+          <span className="dashboard-kpi__value">{avgRating} ★</span>
         </div>
       </div>
 
-      <div
-        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px" }}
-      >
-        {/* Cumulative PnL Chart */}
-        <div className="card">
-          <h3 style={{ margin: "0 0 16px 0" }}>Cumulative Profit & Loss</h3>
+      <div className="dashboard-grid">
+        <div className="dashboard-chart">
+          <h3 className="dashboard-panel__title">Cumulative Profit & Loss</h3>
+          <p className="dashboard-panel__subtitle">
+            Track whether your process is compounding or leaking.
+          </p>
           {trades.length > 0 ? (
             <Line data={chartData} options={chartOptions} />
           ) : (
-            <p
-              style={{ textAlign: "center", color: "#94a3b8", padding: "40px" }}
-            >
-              No trades yet. Start journaling!
-            </p>
+            <div className="dashboard-empty">No trades yet. Start journaling.</div>
           )}
         </div>
 
-        {/* Recent Trades */}
-        <div className="card">
-          <h3 style={{ margin: "0 0 16px 0" }}>Recent Trades</h3>
+        <div className="dashboard-trades">
+          <h3 className="dashboard-panel__title">Recent Trades</h3>
+          <p className="dashboard-panel__subtitle">
+            Your latest entries, ratings, and outcomes.
+          </p>
           {trades.length === 0 ? (
-            <p style={{ color: "#94a3b8" }}>No trades recorded yet.</p>
+            <div className="dashboard-empty">No trades recorded yet.</div>
           ) : (
             <div style={{ maxHeight: "500px", overflowY: "auto" }}>
               {trades
@@ -356,31 +287,19 @@ export default function Dashboard() {
                 .map((trade, index) => (
                   <div
                     key={trade._id || index}
-                    style={{
-                      padding: "12px 0",
-                      borderBottom:
-                        index < trades.length - 1
-                          ? "1px solid #e2e8f0"
-                          : "none",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
+                    className="dashboard-trade"
                   >
                     <div>
-                      <div style={{ fontWeight: 600 }}>{trade.instrument}</div>
-                      <div style={{ fontSize: "13px", color: "#64748b" }}>
+                      <div className="dashboard-trade__instrument">{trade.instrument}</div>
+                      <div className="dashboard-trade__date">
                         {new Date(trade.date).toLocaleDateString("en-IN")}
                       </div>
                     </div>
 
                     <div style={{ textAlign: "right" }}>
                       <div
-                        style={{
-                          fontWeight: 600,
-                          color: trade.pnl >= 0 ? "#22c55e" : "#ef4444",
-                          fontSize: "15px",
-                        }}
+                        className="dashboard-trade__pnl"
+                        style={{ color: trade.pnl >= 0 ? "#047857" : "#b91c1c" }}
                       >
                         ₹{trade.pnl}
                       </div>

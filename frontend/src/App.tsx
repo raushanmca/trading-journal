@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Link,
+  NavLink,
   Navigate,
 } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
@@ -17,6 +18,7 @@ import {
 import JournalForm from "./components/JournalForm";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
+import "./App.css";
 
 interface StoredUser {
   name?: string;
@@ -108,287 +110,149 @@ function App() {
     localStorage.removeItem("user");
     setIsAccountMenuOpen(false);
     window.dispatchEvent(new Event("auth-changed"));
-    window.location.assign("/login");
+    window.location.assign(`${import.meta.env.BASE_URL}login`);
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <BrowserRouter>
-        <div
-          style={{
-            padding: "14px 24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "1px solid #e2e8f0",
-            background:
-              "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
-            boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
-          }}
-        >
-          <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-            <Link
-              to={isSignedIn ? "/" : "/login"}
-              style={{
-                color: "#0f172a",
-                textDecoration: "none",
-                fontWeight: 800,
-                letterSpacing: "0.04em",
-                fontSize: "15px",
-              }}
-            >
-              TRADING JOURNAL
-            </Link>
-            {isSignedIn ? (
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  alignItems: "center",
-                }}
-              >
-                <Link to="/">Journal</Link>
-                <Link to="/dashboard">Dashboard</Link>
-                {!user?.isOwner && trialDaysRemaining !== null ? (
-                  <div
-                    style={{
-                      padding: "7px 12px",
-                      borderRadius: "999px",
-                      background: trialDaysRemaining <= 5 ? "#fef2f2" : "#eff6ff",
-                      color: trialDaysRemaining <= 5 ? "#b91c1c" : "#1d4ed8",
-                      fontSize: "12px",
-                      fontWeight: 700,
-                      letterSpacing: "0.03em",
-                    }}
-                  >
-                    {trialDaysRemaining === 0
-                      ? "Trial expired"
-                      : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`}
-                  </div>
-                ) : null}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <div className="app-shell">
+          <header className="app-shell__header">
+            <div className="app-shell__header-inner">
+              <div className="app-shell__brand">
+                <Link to={isSignedIn ? "/" : "/login"} className="app-shell__logo">
+                  TJ
+                </Link>
+                <div>
+                  <p className="app-shell__title">Trading Journal</p>
+                  <p className="app-shell__subtitle">
+                    Capture your setups, mistakes, and momentum in one place.
+                  </p>
+                </div>
               </div>
-            ) : null}
-          </div>
 
-          {isSignedIn ? (
-            <div
-              ref={accountMenuRef}
-              style={{ position: "relative", display: "flex", gap: "12px" }}
-            >
-              <button
-                onClick={() => setIsAccountMenuOpen((open) => !open)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "8px 12px",
-                  borderRadius: "14px",
-                  border: "1px solid #dbe4ee",
-                  background: "#ffffff",
-                  cursor: "pointer",
-                  minWidth: "220px",
-                  boxShadow: "0 8px 18px rgba(15, 23, 42, 0.06)",
-                }}
-              >
-                <div
-                  style={{
-                    width: "38px",
-                    height: "38px",
-                    borderRadius: "999px",
-                    background:
-                      "linear-gradient(135deg, #0f172a 0%, #334155 100%)",
-                    color: "#ffffff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    letterSpacing: "0.04em",
-                    flexShrink: 0,
-                  }}
-                >
-                  {userInitials || "A"}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    minWidth: 0,
-                    flex: 1,
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "#0f172a",
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxWidth: "140px",
-                    }}
+              {isSignedIn ? (
+                <nav className="app-shell__nav" aria-label="Primary">
+                  <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) =>
+                      `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+                    }
                   >
-                    {user?.name || "My Account"}
-                  </span>
-                  <span
-                    style={{
-                      color: "#64748b",
-                      fontSize: "12px",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxWidth: "140px",
-                    }}
-                  >
-                    {user?.email}
-                  </span>
-                </div>
-                <span style={{ color: "#64748b", fontSize: "12px" }}>
-                  {isAccountMenuOpen ? "▲" : "▼"}
-                </span>
-              </button>
-
-              {isAccountMenuOpen ? (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 10px)",
-                    right: 0,
-                    width: "260px",
-                    background: "#ffffff",
-                    border: "1px solid #dbe4ee",
-                    borderRadius: "16px",
-                    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.14)",
-                    padding: "10px",
-                    zIndex: 20,
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "10px 12px 12px",
-                      borderBottom: "1px solid #eef2f7",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: "#0f172a",
-                        fontWeight: 700,
-                        fontSize: "14px",
-                      }}
-                    >
-                      {user?.name || "Signed In"}
-                    </div>
-                    <div style={{ color: "#64748b", fontSize: "13px" }}>
-                      {user?.email}
-                    </div>
-                    {!user?.isOwner && user?.trialEndsAt ? (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                          color: trialDaysRemaining && trialDaysRemaining <= 5
-                            ? "#b91c1c"
-                            : "#1d4ed8",
-                          fontSize: "12px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {trialDaysRemaining === 0
-                          ? "Trial access expired"
-                          : `Trial ends on ${new Date(user.trialEndsAt).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}`}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <Link
+                    Journal
+                  </NavLink>
+                  <NavLink
                     to="/dashboard"
-                    onClick={() => setIsAccountMenuOpen(false)}
-                    style={{
-                      display: "block",
-                      padding: "10px 12px",
-                      borderRadius: "10px",
-                      color: "#0f172a",
-                      fontWeight: 600,
-                      textDecoration: "none",
-                    }}
+                    className={({ isActive }) =>
+                      `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+                    }
                   >
                     Dashboard
-                  </Link>
-
-                  <button
-                    onClick={handleSignOut}
-                    style={{
-                      width: "100%",
-                      marginTop: "6px",
-                      padding: "10px 12px",
-                      borderRadius: "10px",
-                      border: "none",
-                      background: "#fee2e2",
-                      color: "#b91c1c",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      textAlign: "left",
-                    }}
-                  >
-                    Sign Out
-                  </button>
-                </div>
+                  </NavLink>
+                  {!user?.isOwner && trialDaysRemaining !== null ? (
+                    <div
+                      className={`app-shell__status${trialDaysRemaining <= 5 ? " app-shell__status--warn" : ""}`}
+                    >
+                      {trialDaysRemaining === 0
+                        ? "Trial expired"
+                        : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left`}
+                    </div>
+                  ) : null}
+                </nav>
               ) : null}
-            </div>
-          ) : (
-            <Link
-              to="/login"
-              style={{
-                color: "#ffffff",
-                textDecoration: "none",
-                fontWeight: 700,
-                letterSpacing: "0.02em",
-                background: "#0f172a",
-                padding: "10px 16px",
-                borderRadius: "10px",
-              }}
-            >
-              Sign In
-            </Link>
-          )}
-        </div>
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute isSignedIn={isSignedIn} user={user}>
-                <JournalForm />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute
-                isSignedIn={isSignedIn}
-                user={user}
-                allowExpired
-              >
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={isSignedIn ? <Navigate to="/" replace /> : <Login />}
-          />
-          <Route
-            path="*"
-            element={<Navigate to={isSignedIn ? "/" : "/login"} replace />}
-          />
-        </Routes>
+              {isSignedIn ? (
+                <div ref={accountMenuRef} className="app-shell__user">
+                  <button
+                    onClick={() => setIsAccountMenuOpen((open) => !open)}
+                    className="app-shell__user-button"
+                  >
+                    <div className="app-shell__avatar">{userInitials || "A"}</div>
+                    <div className="app-shell__user-meta">
+                      <span className="app-shell__user-name">
+                        {user?.name || "My Account"}
+                      </span>
+                      <span className="app-shell__user-email">{user?.email}</span>
+                    </div>
+                    <span className="app-shell__caret">
+                      {isAccountMenuOpen ? "▲" : "▼"}
+                    </span>
+                  </button>
+
+                  {isAccountMenuOpen ? (
+                    <div className="app-shell__menu">
+                      <div className="app-shell__menu-head">
+                        <span className="app-shell__menu-name">
+                          {user?.name || "Signed In"}
+                        </span>
+                        <span className="app-shell__menu-email">{user?.email}</span>
+                        {!user?.isOwner && user?.trialEndsAt ? (
+                          <div className="app-shell__menu-trial">
+                            {trialDaysRemaining === 0
+                              ? "Trial access expired"
+                              : `Trial ends on ${new Date(user.trialEndsAt).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}`}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setIsAccountMenuOpen(false)}
+                        className="app-shell__menu-link"
+                      >
+                        Dashboard
+                      </Link>
+
+                      <button onClick={handleSignOut} className="app-shell__menu-action">
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <Link to="/login" className="app-shell__sign-in">
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </header>
+
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute isSignedIn={isSignedIn} user={user}>
+                  <JournalForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute
+                  isSignedIn={isSignedIn}
+                  user={user}
+                  allowExpired
+                >
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={isSignedIn ? <Navigate to="/" replace /> : <Login />}
+            />
+            <Route
+              path="*"
+              element={<Navigate to={isSignedIn ? "/" : "/login"} replace />}
+            />
+          </Routes>
+        </div>
       </BrowserRouter>
     </DndProvider>
   );

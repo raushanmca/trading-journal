@@ -82,34 +82,14 @@ export default function InstrumentsSidebar() {
 
   return (
     <div className="card">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "12px",
-        }}
-      >
+      <div className="sidebar-header">
         <h3>Instruments</h3>
-        <button
-          onClick={() => setShowInput(!showInput)}
-          style={{
-            padding: "4px 10px",
-            fontSize: "12px",
-            background: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={() => setShowInput(!showInput)} className="sidebar-action">
           + Add
         </button>
       </div>
 
-      <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px" }}>
-        Drag to journal entry
-      </p>
+      <p className="sidebar-description">Drag symbols into your journal entry.</p>
 
       {/* Instruments List */}
       {instruments.map((item) => (
@@ -121,16 +101,7 @@ export default function InstrumentsSidebar() {
           ) && (
             <button
               onClick={() => removeInstrument(item)}
-              style={{
-                position: "absolute",
-                top: "8px",
-                right: "10px",
-                background: "transparent",
-                border: "none",
-                color: "#ef4444",
-                fontSize: "14px",
-                cursor: "pointer",
-              }}
+              className="sidebar-remove"
             >
               ×
             </button>
@@ -140,32 +111,16 @@ export default function InstrumentsSidebar() {
 
       {/* Add New Instrument Input */}
       {showInput && (
-        <div style={{ marginTop: "12px", display: "flex", gap: "8px" }}>
+        <div className="sidebar-input-row">
           <input
             type="text"
             value={newInstrument}
             onChange={(e) => setNewInstrument(e.target.value)}
             placeholder="e.g. INFY, SBIN, GOLD..."
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "1px solid #e2e8f0",
-              fontSize: "14px",
-            }}
+            className="sidebar-inline-input"
             onKeyPress={(e) => e.key === "Enter" && addInstrument()}
           />
-          <button
-            onClick={addInstrument}
-            style={{
-              padding: "8px 16px",
-              background: "#22c55e",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={addInstrument} className="sidebar-confirm">
             Add
           </button>
         </div>

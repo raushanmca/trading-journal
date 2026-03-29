@@ -207,36 +207,20 @@ export default function AIJournalChatbot() {
       </div>
 
       {/* Input Area */}
-      <div style={{ display: "flex", gap: "10px" }}>
+      <div className="chat-input-row">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="E.g., Today I traded NIFTY, made 1450 profit, followed my setup but had some FOMO..."
-          style={{
-            flex: 1,
-            padding: "12px 16px",
-            borderRadius: "10px",
-            border: "1px solid #e2e8f0",
-            fontSize: "14px",
-            outline: "none",
-          }}
+          className="chat-input-row__field"
           disabled={isLoading}
         />
         <button
           onClick={sendMessage}
           disabled={!input.trim() || isLoading}
-          style={{
-            padding: "0 24px",
-            background: "#2563eb",
-            color: "white",
-            border: "none",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "14px",
-          }}
+          className="chat-input-row__button"
         >
           Send
         </button>

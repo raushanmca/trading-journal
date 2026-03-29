@@ -42,53 +42,63 @@ export default function Login() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "80px auto",
-        padding: "40px",
-        background: "white",
-        borderRadius: "14px",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-        textAlign: "center",
-      }}
-    >
-      <h2>Welcome to Trading Journal</h2>
-      <p style={{ color: "#64748b", marginBottom: "30px" }}>
-        Sign in to continue
-      </p>
+    <div className="login-page">
+      <section className="login-hero">
+        <div>
+          <span className="login-hero__eyebrow">Deploy-ready journal</span>
+          <h1>Trade with memory, not guesswork.</h1>
+          <p>
+            Build a repeatable review habit with drag-and-drop journaling,
+            quick setup notes, and a dashboard that surfaces your real edge.
+          </p>
+        </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          useOneTap
-          theme="filled_blue"
-          size="large"
-          text="continue_with"
-        />
-      </div>
+        <div className="login-hero__grid">
+          <div className="login-hero__metric">
+            <span>Journal</span>
+            <small>Capture PnL, rating, and mistakes in seconds.</small>
+          </div>
+          <div className="login-hero__metric">
+            <span>Review</span>
+            <small>Spot patterns before they become expensive habits.</small>
+          </div>
+          <div className="login-hero__metric">
+            <span>Improve</span>
+            <small>Turn each session into cleaner next-day execution.</small>
+          </div>
+        </div>
+      </section>
 
-      {/* GitHub Button (we'll implement below) */}
-      <button
-        onClick={() => (window.location.href = `${apiUrl}/api/auth/github`)}
-        style={{
-          width: "100%",
-          padding: "12px",
-          background: "#333",
-          color: "white",
-          border: "none",
-          borderRadius: "8px",
-          fontSize: "16px",
-          cursor: "pointer",
-        }}
-      >
-        Continue with GitHub
-      </button>
+      <section className="login-panel">
+        <div className="login-panel__eyebrow">Sign in</div>
+        <h2>Welcome back</h2>
+        <p className="login-panel__lead">
+          Continue with Google or GitHub to open your trading workspace.
+        </p>
 
-      <p style={{ marginTop: "20px", fontSize: "13px", color: "#94a3b8" }}>
-        By signing in, you agree to our Terms
-      </p>
+        <div className="login-panel__stack">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap
+            theme="filled_blue"
+            size="large"
+            text="continue_with"
+          />
+
+          <button
+            onClick={() => (window.location.href = `${apiUrl}/api/auth/github`)}
+            className="login-panel__github"
+          >
+            Continue with GitHub
+          </button>
+        </div>
+
+        <p className="login-panel__note">
+          By signing in, you agree to continue your journal with the account
+          linked to your trading history.
+        </p>
+      </section>
     </div>
   );
 }

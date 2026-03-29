@@ -165,33 +165,15 @@ export default function LessonsSidebar() {
 
   return (
     <div className="card">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "12px",
-        }}
-      >
+      <div className="sidebar-header">
         <h3>Lessons & Setups</h3>
-        <button
-          onClick={() => setShowInput(!showInput)}
-          style={{
-            padding: "4px 10px",
-            fontSize: "12px",
-            background: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={() => setShowInput(!showInput)} className="sidebar-action">
           + Add
         </button>
       </div>
 
-      <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px" }}>
-        Drag what went well (green) or wrong (red)
+      <p className="sidebar-description">
+        Drag what went well or what broke your plan.
       </p>
 
       {lessons.map((item) => (
@@ -211,17 +193,7 @@ export default function LessonsSidebar() {
           ].includes(item) && (
             <button
               onClick={() => removeLesson(item)}
-              style={{
-                position: "absolute",
-                top: "8px",
-                right: "10px",
-                background: "transparent",
-                border: "none",
-                color: "#ef4444",
-                fontSize: "16px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
+              className="sidebar-remove"
             >
               ×
             </button>
@@ -231,32 +203,16 @@ export default function LessonsSidebar() {
 
       {/* Add New Lesson */}
       {showInput && (
-        <div style={{ marginTop: "12px", display: "flex", gap: "8px" }}>
+        <div className="sidebar-input-row">
           <input
             type="text"
             value={newLesson}
             onChange={(e) => setNewLesson(e.target.value)}
             placeholder="e.g. Maintained 1:3 RR, Emotional Control..."
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "1px solid #e2e8f0",
-              fontSize: "14px",
-            }}
+            className="sidebar-inline-input"
             onKeyPress={(e) => e.key === "Enter" && addLesson()}
           />
-          <button
-            onClick={addLesson}
-            style={{
-              padding: "8px 16px",
-              background: "#22c55e",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={addLesson} className="sidebar-confirm">
             Add
           </button>
         </div>

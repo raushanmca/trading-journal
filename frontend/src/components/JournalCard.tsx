@@ -128,49 +128,28 @@ export default function JournalCard() {
         required
       />
 
-      {/* Star Rating - Side by Side */}
-      <div style={{ margin: "16px 0 12px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <label
-            style={{
-              fontSize: "14px",
-              color: "#475569",
-              fontWeight: 500,
-              minWidth: "90px",
-            }}
-          >
+      <div className="rating-row">
+        <div className="rating-row__header">
+          <label className="rating-row__label">
             Trade Rating
           </label>
-          <div
-            style={{
-              display: "flex",
-              gap: "6px",
-              fontSize: "32px",
-              cursor: "pointer",
-            }}
-          >
+          {form.rating > 0 ? (
+            <span className="rating-row__value">({form.rating}/5)</span>
+          ) : null}
+        </div>
+        <div className="rating-row__stars">
             {[1, 2, 3, 4, 5].map((star) => (
               <span
                 key={star}
                 onClick={() => handleRating(star)}
                 onMouseEnter={() => setHoveredRating(star)}
                 onMouseLeave={() => setHoveredRating(0)}
-                style={{
-                  color: star <= currentRating ? "#facc15" : "#cbd5e1",
-                  transition: "color 0.15s ease",
-                }}
+                className="rating-row__star"
+                style={{ color: star <= currentRating ? "#facc15" : "#cbd5e1" }}
               >
                 ★
               </span>
             ))}
-          </div>
-          {form.rating > 0 && (
-            <span
-              style={{ marginLeft: "8px", fontSize: "14px", color: "#64748b" }}
-            >
-              ({form.rating}/5)
-            </span>
-          )}
         </div>
       </div>
 
