@@ -7,7 +7,8 @@ import {
   getTrialDaysRemaining,
   isTrialExpired,
 } from "../utils/auth";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { getApiBaseUrl } from "../utils/api";
+const BASE_URL = getApiBaseUrl();
 import {
   Chart as ChartJS,
   CategoryScale,

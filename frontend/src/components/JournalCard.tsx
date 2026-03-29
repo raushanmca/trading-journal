@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useDrop } from "react-dnd";
 import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { getApiBaseUrl } from "../utils/api";
+const BASE_URL = getApiBaseUrl();
 
 export default function JournalCard() {
   const [form, setForm] = useState({

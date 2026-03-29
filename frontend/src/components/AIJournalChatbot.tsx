@@ -1,8 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
+import { getApiBaseUrl } from "../utils/api";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = getApiBaseUrl();
 
 interface JournalEntry {
   date: string;

@@ -29,12 +29,16 @@ Create `frontend/.env`:
 
 ```bash
 VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
+VITE_API_URL=https://trading-journal-pd0x.onrender.com
 ```
+
+For GitHub Pages production builds, keep the same values in `frontend/.env.production`.
 
 Notes:
 
 - `VITE_GOOGLE_CLIENT_ID` is used in `src/main.tsx` by `GoogleOAuthProvider`.
-- The API base URL is currently hardcoded as `http://localhost:5000` in component files (`Dashboard.tsx`, `JournalCard.tsx`, `AIJournalChatbot.tsx`, `Login.tsx`).
+- `VITE_API_URL` is optional. If it is omitted, the frontend uses `http://localhost:5000` during local development and the current site origin in non-local environments.
+- If `VITE_API_URL` is set to a localhost URL in production, the frontend now ignores that value and falls back to the current site origin instead.
 
 ## Run Locally
 
@@ -70,7 +74,7 @@ npm run lint
 
 ## Integration Notes
 
-- Frontend expects backend at `http://localhost:5000`.
+- Frontend expects backend at `http://localhost:5000` in local development unless `VITE_API_URL` overrides it.
 - Journal APIs used by frontend:
   - `GET /api/journal`
   - `POST /api/journal`

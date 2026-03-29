@@ -1,10 +1,11 @@
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // if you're using react-router
+import { getApiBaseUrl } from "../utils/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const apiUrl = getApiBaseUrl();
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
