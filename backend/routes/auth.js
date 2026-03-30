@@ -11,6 +11,16 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-key";
 
+function getFrontendUrl() {
+  const frontendUrl = process.env.FRONTEND_URL?.trim();
+
+  if (!frontendUrl) {
+    throw new Error("FRONTEND_URL is not configured");
+  }
+
+  return frontendUrl.replace(/\/+$/, "");
+}
+
 async function findOrCreateUser({
   authProviderId,
   email,
@@ -156,7 +166,7 @@ router.get("/github/callback", async (req, res) => {
       { expiresIn: "7d" },
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = getFrontendUrl();
     const userPayload = encodeURIComponent(
       JSON.stringify({
         email: account.email,
@@ -176,8 +186,14 @@ router.get("/github/callback", async (req, res) => {
     );
   } catch (err) {
     console.error(err);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    res.redirect(`${frontendUrl}/login?error=github_failed`);
+    try {
+      const frontendUrl = getFrontendUrl();
+      res.redirect(`${frontendUrl}/login?error=github_failed`);
+    } catch (frontendUrlError) {
+      res.status(500).json({
+        message: frontendUrlError.message || "FRONTEND_URL is not configured",
+      });
+    }
   }
 });
 
