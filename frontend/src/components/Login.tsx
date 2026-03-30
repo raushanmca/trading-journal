@@ -2,10 +2,12 @@ import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // if you're using react-router
 import { getApiBaseUrl } from "../utils/api";
+import { useLocalization } from "../localization/LocalizationProvider";
 
 export default function Login() {
   const navigate = useNavigate();
   const apiUrl = getApiBaseUrl();
+  const { t } = useLocalization();
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
@@ -19,62 +21,57 @@ export default function Login() {
       window.dispatchEvent(new Event("auth-changed"));
 
       if (res.data.user?.isTrialExpired) {
-        alert("Your 30-day trial has expired. Please contact support.");
+        alert(t("login.alert.trialExpired"));
         navigate("/dashboard");
         return;
       }
 
-      alert("Login successful!");
+      alert(t("login.alert.success"));
       navigate("/dashboard"); // or wherever your main app is
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err)) {
-        alert(err.response?.data?.message || "Login failed");
+        alert(err.response?.data?.message || t("login.alert.failed"));
         return;
       }
 
-      alert("Login failed");
+      alert(t("login.alert.failed"));
     }
   };
 
   const handleGoogleError = () => {
-    alert("Google login failed");
+    alert(t("login.alert.googleFailed"));
   };
 
   return (
     <div className="login-page">
       <section className="login-hero">
         <div>
-          <span className="login-hero__eyebrow">Deploy-ready journal</span>
-          <h1>Trade with memory, not guesswork.</h1>
-          <p>
-            Build a repeatable review habit with drag-and-drop journaling,
-            quick setup notes, and a dashboard that surfaces your real edge.
-          </p>
+          <span className="login-hero__eyebrow">{t("login.heroEyebrow")}</span>
+          <h1>{t("login.heroTitle")}</h1>
+          <p>{t("login.heroDescription")}</p>
         </div>
 
         <div className="login-hero__grid">
           <div className="login-hero__metric">
-            <span>Journal</span>
-            <small>Capture PnL, rating, and mistakes in seconds.</small>
+            <span>{t("login.metricJournal")}</span>
+            <small>{t("login.metricJournalDesc")}</small>
           </div>
           <div className="login-hero__metric">
-            <span>Review</span>
-            <small>Spot patterns before they become expensive habits.</small>
+            <span>{t("login.metricReview")}</span>
+            <small>{t("login.metricReviewDesc")}</small>
           </div>
           <div className="login-hero__metric">
-            <span>Improve</span>
-            <small>Turn each session into cleaner next-day execution.</small>
+            <span>{t("login.metricImprove")}</span>
+            <small>{t("login.metricImproveDesc")}</small>
           </div>
         </div>
       </section>
 
       <section className="login-panel">
-        <div className="login-panel__eyebrow">Sign in</div>
-        <h2>Welcome back</h2>
-        <p className="login-panel__lead">
-          Continue with Google or GitHub to open your trading workspace.
-        </p>
+        <div className="login-panel__eyebrow">{t("login.eyebrow")}</div>
+        <h2>{t("login.title")}</h2>
+        <p className="login-panel__lead">{t("login.description")}</p>
 
         <div className="login-panel__stack">
           <GoogleLogin
@@ -90,14 +87,11 @@ export default function Login() {
             onClick={() => (window.location.href = `${apiUrl}/api/auth/github`)}
             className="login-panel__github"
           >
-            Continue with GitHub
+            {t("login.github")}
           </button>
         </div>
 
-        <p className="login-panel__note">
-          By signing in, you agree to continue your journal with the account
-          linked to your trading history.
-        </p>
+        <p className="login-panel__note">{t("login.note")}</p>
       </section>
     </div>
   );

@@ -8,6 +8,8 @@ import {
   isTrialExpired,
 } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
+import { useLocalization } from "../localization/LocalizationProvider";
+import { useAppDateFormatter } from "../localization/date";
 const BASE_URL = getApiBaseUrl();
 import {
   Chart as ChartJS,
@@ -42,6 +44,8 @@ interface Trade {
 }
 
 export default function Dashboard() {
+  const { t } = useLocalization();
+  const { formatCompactDate, formatLongDate } = useAppDateFormatter();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
@@ -88,12 +92,12 @@ export default function Dashboard() {
         console.error(err);
         if (axios.isAxiosError(err)) {
           setErrorMessage(
-            err.response?.data?.message || "Failed to load your dashboard",
+            err.response?.data?.message || t("dashboard.loadFailed"),
           );
         }
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   // Calculate KPIs
   const totalTrades = trades.length;
@@ -118,10 +122,10 @@ export default function Dashboard() {
   });
 
   const chartData = {
-    labels: trades.map((_, i) => `Trade ${i + 1}`),
+    labels: trades.map((_, i) => t("dashboard.tradeLabel", { index: i + 1 })),
     datasets: [
       {
-        label: "Cumulative PnL",
+        label: t("dashboard.chartTitle"),
         data: cumulativePnL,
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59, 130, 246, 0.1)",
@@ -137,7 +141,10 @@ export default function Dashboard() {
       legend: { position: "top" as const },
       tooltip: {
         callbacks: {
-          label: (context: any) => `PnL: ₹${context.raw.toLocaleString()}`,
+          label: (context: any) =>
+            t("dashboard.pnlLabel", {
+              value: context.raw.toLocaleString(),
+            }),
         },
       },
     },
@@ -163,7 +170,7 @@ export default function Dashboard() {
   if (loading)
     return (
       <div className="dashboard-page" style={{ textAlign: "center" }}>
-        Loading dashboard...
+        {t("dashboard.loading")}
       </div>
     );
 
@@ -171,20 +178,15 @@ export default function Dashboard() {
     return (
       <div className="dashboard-page">
         <div className="dashboard-banner dashboard-banner--danger">
-          <div className="dashboard-banner__label">Trial Expired</div>
-          <h1>Your 30-day trial has ended</h1>
+          <div className="dashboard-banner__label">{t("dashboard.trialExpired")}</div>
+          <h1>{t("dashboard.trialExpiredTitle")}</h1>
           <p style={{ color: "#7c2d12", lineHeight: 1.7 }}>
-            {userName || userEmail || "Your account"} reached the end of its
-            free access period on{" "}
-            {trialEndsAt
-              ? new Date(trialEndsAt).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
-              : "the configured expiry date"}
-            . Contact support or upgrade access to continue using the journal
-            and dashboard.
+            {t("dashboard.trialExpiredBody", {
+              account: userName || userEmail || t("dashboard.yourAccount"),
+              date: trialEndsAt
+                ? formatLongDate(trialEndsAt)
+                : t("dashboard.configuredExpiry"),
+            })}
           </p>
         </div>
       </div>
@@ -195,37 +197,45 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <div className="dashboard-hero">
         <div>
-          <div className="dashboard-hero__eyebrow">Performance overview</div>
-          <h1>Trading Dashboard</h1>
-          <p>Review the numbers behind your decisions and discipline.</p>
+          <div className="dashboard-hero__eyebrow">{t("dashboard.performanceOverview")}</div>
+          <h1>{t("dashboard.title")}</h1>
+          <p>{t("dashboard.subtitle")}</p>
         </div>
         <div className="dashboard-hero__meta">
-          {userName ? <strong>Logged in as {userName}</strong> : null}
-          {isOwner ? <span>Owner access is active for {userEmail || "this account"}.</span> : null}
+          {userName ? (
+            <strong>{t("dashboard.loggedInAs", { name: userName })}</strong>
+          ) : null}
+          {isOwner ? (
+            <span>
+              {t("nav.ownerAccess", {
+                email: userEmail || t("dashboard.yourAccount"),
+              })}
+            </span>
+          ) : null}
         </div>
       </div>
       {isOwner ? (
         <div className="dashboard-banner">
-          <div className="dashboard-banner__label">Owner Access</div>
-          Full access is active for {userEmail || "this account"}.
+          <div className="dashboard-banner__label">{t("dashboard.ownerAccessLabel")}</div>
+          {t("dashboard.ownerAccessBody", {
+            email: userEmail || t("dashboard.yourAccount"),
+          })}
         </div>
       ) : trialDaysRemaining !== null ? (
         <div className="dashboard-banner dashboard-banner--trial">
-          <div className="dashboard-banner__label">Trial Access</div>
+          <div className="dashboard-banner__label">{t("dashboard.trialAccess")}</div>
           <div style={{ color: "#0f172a", fontSize: "1.2rem", fontWeight: 800 }}>
             {trialDaysRemaining === 0
-              ? "Your trial has ended"
-              : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining`}
+              ? t("dashboard.trialEnded")
+              : t("dashboard.trialRemaining", {
+                  count: trialDaysRemaining,
+                  suffix: trialDaysRemaining === 1 ? "" : "s",
+                })}
           </div>
           <div style={{ color: "#475569", marginTop: "6px", fontSize: "14px" }}>
-            Trial end date:{" "}
-            {trialEndsAt
-              ? new Date(trialEndsAt).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
-              : "Not available"}
+            {t("dashboard.trialEndDate", {
+              date: trialEndsAt ? formatLongDate(trialEndsAt) : t("dashboard.notAvailable"),
+            })}
           </div>
         </div>
       ) : null}
@@ -233,12 +243,12 @@ export default function Dashboard() {
 
       <div className="dashboard-kpis">
         <div className="dashboard-kpi">
-          <span className="dashboard-kpi__label">Total Trades</span>
+          <span className="dashboard-kpi__label">{t("dashboard.totalTrades")}</span>
           <span className="dashboard-kpi__value">{totalTrades}</span>
         </div>
 
         <div className="dashboard-kpi">
-          <span className="dashboard-kpi__label">Net PnL</span>
+          <span className="dashboard-kpi__label">{t("dashboard.netPnl")}</span>
           <span
             className={`dashboard-kpi__value ${
               totalPnL >= 0 ? "dashboard-kpi__value--positive" : "dashboard-kpi__value--negative"
@@ -249,36 +259,32 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-kpi">
-          <span className="dashboard-kpi__label">Win Rate</span>
+          <span className="dashboard-kpi__label">{t("dashboard.winRate")}</span>
           <span className="dashboard-kpi__value">{winRate}%</span>
         </div>
 
         <div className="dashboard-kpi">
-          <span className="dashboard-kpi__label">Avg Rating</span>
+          <span className="dashboard-kpi__label">{t("dashboard.avgRating")}</span>
           <span className="dashboard-kpi__value">{avgRating} ★</span>
         </div>
       </div>
 
       <div className="dashboard-grid">
         <div className="dashboard-chart">
-          <h3 className="dashboard-panel__title">Cumulative Profit & Loss</h3>
-          <p className="dashboard-panel__subtitle">
-            Track whether your process is compounding or leaking.
-          </p>
+          <h3 className="dashboard-panel__title">{t("dashboard.chartTitle")}</h3>
+          <p className="dashboard-panel__subtitle">{t("dashboard.chartSubtitle")}</p>
           {trades.length > 0 ? (
             <Line data={chartData} options={chartOptions} />
           ) : (
-            <div className="dashboard-empty">No trades yet. Start journaling.</div>
+            <div className="dashboard-empty">{t("dashboard.noTrades")}</div>
           )}
         </div>
 
         <div className="dashboard-trades">
-          <h3 className="dashboard-panel__title">Recent Trades</h3>
-          <p className="dashboard-panel__subtitle">
-            Your latest entries, ratings, and outcomes.
-          </p>
+          <h3 className="dashboard-panel__title">{t("dashboard.recentTrades")}</h3>
+          <p className="dashboard-panel__subtitle">{t("dashboard.recentTradesSubtitle")}</p>
           {trades.length === 0 ? (
-            <div className="dashboard-empty">No trades recorded yet.</div>
+            <div className="dashboard-empty">{t("dashboard.noTradesRecorded")}</div>
           ) : (
             <div style={{ maxHeight: "500px", overflowY: "auto" }}>
               {trades
@@ -292,7 +298,7 @@ export default function Dashboard() {
                     <div>
                       <div className="dashboard-trade__instrument">{trade.instrument}</div>
                       <div className="dashboard-trade__date">
-                        {new Date(trade.date).toLocaleDateString("en-IN")}
+                        {formatCompactDate(trade.date)}
                       </div>
                     </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
+import { useLocalization } from "../localization/LocalizationProvider";
 
 function Item({ value }: { value: string }) {
   const [{ isDragging }, drag] = useDrag(() => ({
@@ -24,6 +25,7 @@ function Item({ value }: { value: string }) {
 }
 
 export default function InstrumentsSidebar() {
+  const { t } = useLocalization();
   const [instruments, setInstruments] = useState<string[]>([
     "NIFTY",
     "BANKNIFTY",
@@ -73,7 +75,7 @@ export default function InstrumentsSidebar() {
       "TCS",
     ];
     if (defaultInstruments.includes(valueToRemove)) {
-      alert("Cannot remove default instruments");
+      alert(t("sidebar.alert.defaultInstrument"));
       return;
     }
 
@@ -83,13 +85,13 @@ export default function InstrumentsSidebar() {
   return (
     <div className="card">
       <div className="sidebar-header">
-        <h3>Instruments</h3>
+        <h3>{t("sidebar.instruments")}</h3>
         <button onClick={() => setShowInput(!showInput)} className="sidebar-action">
-          + Add
+          {t("sidebar.add")}
         </button>
       </div>
 
-      <p className="sidebar-description">Drag symbols into your journal entry.</p>
+      <p className="sidebar-description">{t("sidebar.instrumentsDescription")}</p>
 
       {/* Instruments List */}
       {instruments.map((item) => (
@@ -116,12 +118,12 @@ export default function InstrumentsSidebar() {
             type="text"
             value={newInstrument}
             onChange={(e) => setNewInstrument(e.target.value)}
-            placeholder="e.g. INFY, SBIN, GOLD..."
+            placeholder={t("sidebar.instrumentPlaceholder")}
             className="sidebar-inline-input"
             onKeyPress={(e) => e.key === "Enter" && addInstrument()}
           />
           <button onClick={addInstrument} className="sidebar-confirm">
-            Add
+            {t("sidebar.addConfirm")}
           </button>
         </div>
       )}

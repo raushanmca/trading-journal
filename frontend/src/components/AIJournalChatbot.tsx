@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
+import { useLocalization } from "../localization/LocalizationProvider";
 
 const BASE_URL = getApiBaseUrl();
 
@@ -20,11 +21,11 @@ interface AssistantResponse {
 }
 
 export default function AIJournalChatbot() {
-  const [messages, setMessages] = useState([
+  const { t } = useLocalization();
+  const [messages, setMessages] = useState(() => [
     {
       role: "assistant" as const,
-      content:
-        "Hi! I'm your AI Journal Assistant.\n\nDescribe your today's trade in simple English. I'll extract the details and help you save it.",
+      content: t("ai.greeting"),
     },
   ]);
 
@@ -32,6 +33,22 @@ export default function AIJournalChatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const [parsedEntry, setParsedEntry] = useState<JournalEntry | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 0 || prev[0].role !== "assistant") {
+        return prev;
+      }
+
+      return [
+        {
+          ...prev[0],
+          content: t("ai.greeting"),
+        },
+        ...prev.slice(1),
+      ];
+    });
+  }, [t]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -52,7 +69,7 @@ export default function AIJournalChatbot() {
           ...prev,
           {
             role: "assistant" as const,
-            content: "Please sign in to use the AI journal assistant.",
+            content: t("ai.signInToUse"),
           },
         ]);
         return;
@@ -80,8 +97,8 @@ export default function AIJournalChatbot() {
     } catch (error) {
       const message = axios.isAxiosError(error)
         ? error.response?.data?.message ||
-          "Sorry, I couldn't process that right now. Please try again."
-        : "Sorry, I couldn't process that right now. Please try again.";
+          t("ai.processingFailed")
+        : t("ai.processingFailed");
 
       setMessages((prev) => [
         ...prev,
@@ -105,7 +122,7 @@ export default function AIJournalChatbot() {
         ...prev,
         {
           role: "assistant" as const,
-          content: "Please sign in before saving journal entries.",
+          content: t("ai.signInToSave"),
         },
       ]);
       return;
@@ -127,7 +144,7 @@ export default function AIJournalChatbot() {
         ...prev,
         {
           role: "assistant" as const,
-          content: "✅ Journal entry saved successfully!",
+          content: t("ai.saved"),
         },
       ]);
 
@@ -138,7 +155,7 @@ export default function AIJournalChatbot() {
         ...prev,
         {
           role: "assistant" as const,
-          content: "❌ Failed to save entry. Please try again or sign in again.",
+          content: t("ai.saveFailed"),
         },
       ]);
     }
@@ -154,9 +171,9 @@ export default function AIJournalChatbot() {
         width: "100%",
       }}
     >
-      <h3>AI Journal Assistant</h3>
+      <h3>{t("ai.title")}</h3>
       <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "16px" }}>
-        Describe your trade in natural English and I'll turn it into a structured journal entry
+        {t("ai.description")}
       </p>
 
       {/* Chat Area */}
@@ -201,7 +218,7 @@ export default function AIJournalChatbot() {
         ))}
         {isLoading && (
           <div style={{ padding: "12px 16px", color: "#64748b" }}>
-            AI is thinking...
+            {t("ai.thinking")}
           </div>
         )}
       </div>
@@ -213,7 +230,7 @@ export default function AIJournalChatbot() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="E.g., Today I traded NIFTY, made 1450 profit, followed my setup but had some FOMO..."
+          placeholder={t("ai.inputPlaceholder")}
           className="chat-input-row__field"
           disabled={isLoading}
         />
@@ -222,7 +239,7 @@ export default function AIJournalChatbot() {
           disabled={!input.trim() || isLoading}
           className="chat-input-row__button"
         >
-          Send
+          {t("ai.send")}
         </button>
       </div>
 
@@ -243,7 +260,7 @@ export default function AIJournalChatbot() {
             width: "90%",
           }}
         >
-          <h4 style={{ margin: "0 0 16px 0" }}>Confirm Journal Entry</h4>
+          <h4 style={{ margin: "0 0 16px 0" }}>{t("ai.confirmTitle")}</h4>
 
           <div
             style={{
@@ -255,13 +272,13 @@ export default function AIJournalChatbot() {
               lineHeight: "1.6",
             }}
           >
-            <strong>Instrument:</strong> {parsedEntry.instrument}
+            <strong>{t("ai.confirmInstrument")}</strong> {parsedEntry.instrument}
             <br />
-            <strong>PnL:</strong> ₹{parsedEntry.pnl}
+            <strong>{t("ai.confirmPnl")}</strong> ₹{parsedEntry.pnl}
             <br />
-            <strong>Rating:</strong> {parsedEntry.rating}/5
+            <strong>{t("ai.confirmRating")}</strong> {parsedEntry.rating}/5
             <br />
-            <strong>Lessons:</strong> {parsedEntry.mistakes.join(", ")}
+            <strong>{t("ai.confirmLessons")}</strong> {parsedEntry.mistakes.join(", ")}
           </div>
 
           <div style={{ display: "flex", gap: "12px" }}>
@@ -278,7 +295,7 @@ export default function AIJournalChatbot() {
                 cursor: "pointer",
               }}
             >
-              Yes, Save Entry
+              {t("ai.confirmSave")}
             </button>
             <button
               onClick={() => setShowConfirm(false)}
@@ -293,7 +310,7 @@ export default function AIJournalChatbot() {
                 cursor: "pointer",
               }}
             >
-              Cancel / Edit
+              {t("ai.confirmCancel")}
             </button>
           </div>
         </div>

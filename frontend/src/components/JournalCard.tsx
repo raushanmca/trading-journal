@@ -3,15 +3,18 @@ import { useDrop } from "react-dnd";
 import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
+import { useLocalization } from "../localization/LocalizationProvider";
 const BASE_URL = getApiBaseUrl();
 
 export default function JournalCard() {
+  const { t } = useLocalization();
   const [form, setForm] = useState({
     date: "",
     instrument: "",
     pnl: "",
     mistakes: "", // We'll keep this field name for now
     rating: 0,
+    tradeResult: "profit" as "profit" | "loss",
   });
 
   const [isInstrumentOver, setIsInstrumentOver] = useState(false);
@@ -65,22 +68,25 @@ export default function JournalCard() {
     const authHeaders = getAuthHeaders();
 
     if (!authHeaders.Authorization) {
-      alert("Please sign in to save journal entries");
+      alert(t("journal.alert.signIn"));
       return;
     }
 
     if (!form.date || !form.instrument || !form.pnl) {
-      alert("Please fill Date, Instrument, and PnL");
+      alert(t("journal.alert.required"));
       return;
     }
+
+    const normalizedPnl = Math.abs(Number(form.pnl));
 
     await axios.post(
       `${BASE_URL}/api/journal`,
       {
         date: form.date,
         instrument: form.instrument,
-        pnl: Number(form.pnl),
+        pnl: form.tradeResult === "loss" ? -normalizedPnl : normalizedPnl,
         rating: form.rating,
+        tradeResult: form.tradeResult,
         mistakes: form.mistakes
           ? form.mistakes
               .split(",")
@@ -93,16 +99,23 @@ export default function JournalCard() {
       },
     );
 
-    alert("Journal entry saved successfully!");
+    alert(t("journal.alert.saved"));
 
-    setForm({ date: "", instrument: "", pnl: "", mistakes: "", rating: 0 });
+    setForm({
+      date: "",
+      instrument: "",
+      pnl: "",
+      mistakes: "",
+      rating: 0,
+      tradeResult: "profit",
+    });
   };
 
   const currentRating = hoveredRating || form.rating;
 
   return (
     <form className="card" onSubmit={submit}>
-      <h3>Journal Entry</h3>
+      <h3>{t("journal.cardTitle")}</h3>
 
       <input
         type="date"
@@ -116,22 +129,49 @@ export default function JournalCard() {
         ref={dropInstrument}
         className={`drop-zone ${isInstrumentOver ? "drag-over" : ""}`}
       >
-        {form.instrument ? form.instrument : "Drop instrument here"}
+        {form.instrument ? form.instrument : t("journal.instrumentDrop")}
       </div>
 
       <input
         name="pnl"
         type="number"
-        placeholder="PnL (e.g. 1250 or -450)"
+        min="0"
+        placeholder={t("journal.pnlPlaceholder")}
         onChange={handleChange}
         className="form-input"
         required
       />
 
+      <div className="trade-result">
+        <span className="trade-result__label">{t("journal.result")}</span>
+        <div className="trade-result__controls">
+          <button
+            type="button"
+            className={`trade-result__option${
+              form.tradeResult === "profit" ? " trade-result__option--active" : ""
+            }`}
+            onClick={() =>
+              setForm((prev) => ({ ...prev, tradeResult: "profit" }))
+            }
+          >
+            {t("journal.result.profit")}
+          </button>
+          <button
+            type="button"
+            className={`trade-result__option${
+              form.tradeResult === "loss" ? " trade-result__option--active trade-result__option--loss" : ""
+            }`}
+            onClick={() => setForm((prev) => ({ ...prev, tradeResult: "loss" }))}
+          >
+            {t("journal.result.loss")}
+          </button>
+        </div>
+      </div>
+
       <div className="rating-row">
         <div className="rating-row__header">
           <label className="rating-row__label">
-            Trade Rating
+            {t("journal.tradeRating")}
           </label>
           {form.rating > 0 ? (
             <span className="rating-row__value">({form.rating}/5)</span>
@@ -160,11 +200,11 @@ export default function JournalCard() {
       >
         {form.mistakes
           ? form.mistakes
-          : "Drop Lessons & Setups here (what went well or wrong)"}
+          : t("journal.lessonDrop")}
       </div>
 
       <button type="submit" className="submit-btn">
-        Save Entry
+        {t("journal.saveEntry")}
       </button>
     </form>
   );

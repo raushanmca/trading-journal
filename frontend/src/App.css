@@ -67,6 +67,28 @@
   flex-wrap: wrap;
 }
 
+.app-shell__locale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #425466;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.app-shell__locale-label {
+  white-space: nowrap;
+}
+
+.app-shell__locale-select {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0 12px;
+  color: #0f172a;
+}
+
 .app-shell__nav-link {
   padding: 10px 14px;
   border-radius: 999px;
@@ -558,6 +580,11 @@
 
   .app-shell__nav {
     width: 100%;
+  }
+
+  .app-shell__locale {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .app-shell__user-button,

@@ -1,18 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const Journal = require("../models/Journal");
 const requireAuth = require("../middleware/auth");
 const requireActiveTrial = require("../middleware/trial");
+const {
+  createJournalEntry,
+  getJournalEntries,
+} = require("../services/journal/journalService");
 
 // ✅ Create Journal Entry
 router.post("/", requireAuth, requireActiveTrial, async (req, res) => {
   try {
-    const journal = new Journal({
-      ...req.body,
-      userId: req.user.userId,
-      userEmail: req.user.email || "",
-    });
-    const saved = await journal.save();
+    const saved = await createJournalEntry(req.body, req.user);
     res.json(saved);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -22,9 +20,7 @@ router.post("/", requireAuth, requireActiveTrial, async (req, res) => {
 // ✅ Get All Journals
 router.get("/", requireAuth, requireActiveTrial, async (req, res) => {
   try {
-    const data = await Journal.find({ userId: req.user.userId }).sort({
-      createdAt: -1,
-    });
+    const data = await getJournalEntries(req.user.userId);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

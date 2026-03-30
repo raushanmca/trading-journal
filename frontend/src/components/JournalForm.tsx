@@ -7,6 +7,7 @@ import LessonsSidebar from "./LessonsSidebar";
 import AIJournalChatbot from "./AIJournalChatbot";
 import { getUserStorageKey } from "../utils/auth";
 import "./JournalForm.css";
+import { useLocalization } from "../localization/LocalizationProvider";
 
 const DEFAULT_LAYOUT_IDS = ["instruments", "journal", "lessons", "chatbot"];
 
@@ -28,6 +29,7 @@ function getLayoutFromIds(layoutIds: string[]) {
 }
 
 function DraggableCard({ id, index, moveCard, children }: any) {
+  const { t } = useLocalization();
   const [, drag] = useDrag({
     type: "CARD",
     item: { index },
@@ -44,7 +46,7 @@ function DraggableCard({ id, index, moveCard, children }: any) {
 
   return (
     <div ref={(node) => drag(drop(node))} className="draggable-card">
-      <div className="drag-handle">☰ Drag to reorder</div>
+      <div className="drag-handle">☰ {t("journal.dragHandle")}</div>
       {children}
     </div>
   );

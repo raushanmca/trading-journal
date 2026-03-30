@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
+import { useLocalization } from "../localization/LocalizationProvider";
 
 function getSentimentColor(text: string): string {
   const lower = text.toLowerCase();
@@ -86,6 +87,7 @@ function Item({ value }: { value: string }) {
 }
 
 export default function LessonsSidebar() {
+  const { t } = useLocalization();
   const [lessons, setLessons] = useState<string[]>([
     "Over Trading",
     "Fear of Missing Out (FOMO)",
@@ -156,7 +158,7 @@ export default function LessonsSidebar() {
     ];
 
     if (defaultLessons.includes(valueToRemove)) {
-      alert("Cannot remove default lessons");
+      alert(t("sidebar.alert.defaultLesson"));
       return;
     }
 
@@ -166,15 +168,13 @@ export default function LessonsSidebar() {
   return (
     <div className="card">
       <div className="sidebar-header">
-        <h3>Lessons & Setups</h3>
+        <h3>{t("sidebar.lessons")}</h3>
         <button onClick={() => setShowInput(!showInput)} className="sidebar-action">
-          + Add
+          {t("sidebar.add")}
         </button>
       </div>
 
-      <p className="sidebar-description">
-        Drag what went well or what broke your plan.
-      </p>
+      <p className="sidebar-description">{t("sidebar.lessonsDescription")}</p>
 
       {lessons.map((item) => (
         <div key={item} style={{ position: "relative" }}>
@@ -208,12 +208,12 @@ export default function LessonsSidebar() {
             type="text"
             value={newLesson}
             onChange={(e) => setNewLesson(e.target.value)}
-            placeholder="e.g. Maintained 1:3 RR, Emotional Control..."
+            placeholder={t("sidebar.lessonPlaceholder")}
             className="sidebar-inline-input"
             onKeyPress={(e) => e.key === "Enter" && addLesson()}
           />
           <button onClick={addLesson} className="sidebar-confirm">
-            Add
+            {t("sidebar.addConfirm")}
           </button>
         </div>
       )}

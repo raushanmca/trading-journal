@@ -1,65 +1,16 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const axios = require("axios");
 const router = express.Router();
-const User = require("../models/User");
-const { addDays, getTrialStatus, isOwnerEmail, normalizeEmail } = require("../utils/trial");
+const { getFrontendUrl } = require("../services/auth/frontendUrlService");
+const { findOrCreateUser } = require("../services/auth/userAccountService");
+const {
+  buildAuthenticatedUser,
+  buildAuthToken,
+} = require("../services/auth/authResponseService");
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-key";
-
-function getFrontendUrl() {
-  const frontendUrl = process.env.FRONTEND_URL?.trim();
-
-  if (!frontendUrl) {
-    throw new Error("FRONTEND_URL is not configured");
-  }
-
-  return frontendUrl.replace(/\/+$/, "");
-}
-
-async function findOrCreateUser({
-  authProviderId,
-  email,
-  name,
-  picture,
-  provider,
-}) {
-  const normalizedEmail = normalizeEmail(email);
-  const now = new Date();
-
-  let user = await User.findOne({ authProviderId });
-
-  if (!user && normalizedEmail) {
-    user = await User.findOne({ email: normalizedEmail });
-  }
-
-  if (!user) {
-    user = new User({
-      authProviderId,
-      email: normalizedEmail,
-      name,
-      picture,
-      provider,
-      isOwner: isOwnerEmail(normalizedEmail),
-      trialStartedAt: now,
-      trialEndsAt: addDays(now, 30),
-    });
-  } else {
-    user.authProviderId = authProviderId;
-    user.email = normalizedEmail;
-    user.name = name;
-    user.picture = picture;
-    user.provider = provider;
-    user.isOwner = isOwnerEmail(normalizedEmail);
-  }
-
-  await user.save();
-  return user;
-}
 
 // Google Login
 router.post("/google", async (req, res) => {
@@ -91,25 +42,8 @@ router.post("/google", async (req, res) => {
       picture: payload.picture,
       provider: "google",
     });
-    const trialStatus = getTrialStatus(account);
-
-    const user = {
-      email: account.email,
-      name: account.name,
-      picture: account.picture,
-      provider: account.provider,
-      isOwner: trialStatus.isOwner,
-      trialStartedAt: trialStatus.trialStartedAt,
-      trialEndsAt: trialStatus.trialEndsAt,
-      isTrialExpired: trialStatus.isTrialExpired,
-      trialDays: trialStatus.trialDays,
-    };
-
-    const authToken = jwt.sign(
-      { userId: account.authProviderId, email: account.email },
-      JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const { user } = buildAuthenticatedUser(account);
+    const authToken = buildAuthToken(account);
 
     res.json({ token: authToken, user });
   } catch (err) {
@@ -158,13 +92,8 @@ router.get("/github/callback", async (req, res) => {
       picture: githubUser.avatar_url,
       provider: "github",
     });
-    const trialStatus = getTrialStatus(account);
-
-    const token = jwt.sign(
-      { userId: account.authProviderId, email: account.email },
-      JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const { trialStatus } = buildAuthenticatedUser(account);
+    const token = buildAuthToken(account);
 
     const frontendUrl = getFrontendUrl();
     const userPayload = encodeURIComponent(

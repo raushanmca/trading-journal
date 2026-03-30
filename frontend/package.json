@@ -24,6 +24,7 @@
     "react-chartjs-2": "^5.3.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
+    "react-dnd-touch-backend": "^16.0.1",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.2",
     "rolldown": "^1.0.0-rc.12"
