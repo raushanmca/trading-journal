@@ -38,7 +38,7 @@ export function AppShell({
         <div className="app-shell__header-inner">
           <div className="app-shell__brand">
             <Link to={isSignedIn ? "/" : "/login"} className="app-shell__logo">
-              TJ
+              <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Trading Journal logo" />
             </Link>
             <div>
               <p className="app-shell__title">{t("app.title")}</p>
