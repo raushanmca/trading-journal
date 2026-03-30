@@ -5,6 +5,9 @@ import type { StoredUser } from "../types";
 export function useAuthSession() {
   const [user, setUser] = useState<StoredUser | null>(null);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
+    null,
+  );
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -41,7 +44,6 @@ export function useAuthSession() {
   }, []);
 
   const isSignedIn = Boolean(user?.name || user?.email);
-  const trialDaysRemaining = getTrialDaysRemaining(user);
   const userLabel = user?.name || user?.email || "Account";
   const userInitials = userLabel
     .split(" ")
@@ -49,6 +51,24 @@ export function useAuthSession() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+
+  useEffect(() => {
+    const updateTrialDays = () => {
+      setTrialDaysRemaining(getTrialDaysRemaining(user));
+    };
+
+    updateTrialDays();
+
+    if (!user?.trialEndsAt || user?.isOwner) {
+      return;
+    }
+
+    const intervalId = window.setInterval(updateTrialDays, 60 * 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [user]);
 
   const signOut = () => {
     localStorage.removeItem("token");

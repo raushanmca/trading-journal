@@ -14,6 +14,7 @@ app.use(express.json());
 app.use("/api/journal", require("./routes/journal"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/ai", require("./routes/ai"));
+app.use("/api/subscription", require("./routes/subscription"));
 
 app.get("/", (req, res) => {
   res.send("Trading Journal API Running...");

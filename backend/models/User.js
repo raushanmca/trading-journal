@@ -37,6 +37,26 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    renewalCount: {
+      type: Number,
+      default: 0,
+    },
+    lastRenewedAt: {
+      type: Date,
+      default: null,
+    },
+    lastPaymentMethod: {
+      type: String,
+      default: "",
+    },
+    lastPaymentAmount: {
+      type: Number,
+      default: 0,
+    },
+    lastPaymentReference: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );

@@ -15,6 +15,7 @@ import {
   readDashboardCache,
   writeDashboardCache,
 } from "../features/dashboard/dashboardCache";
+import { RenewAccessActions } from "../features/subscription/components/RenewAccessActions";
 const BASE_URL = getApiBaseUrl();
 import {
   Chart as ChartJS,
@@ -63,26 +64,39 @@ export default function Dashboard() {
   );
 
   useEffect(() => {
-    const storedUser = getStoredUser();
+    const syncStoredUser = () => {
+      const storedUser = getStoredUser();
 
-    if (storedUser) {
       setUserName(storedUser?.name || "");
       setUserEmail(storedUser?.email || "");
       setTrialEndsAt(storedUser?.trialEndsAt || "");
       setIsOwner(Boolean(storedUser?.isOwner));
       setTrialDaysRemaining(getTrialDaysRemaining(storedUser));
-    }
+
+      return storedUser;
+    };
+
+    const storedUser = syncStoredUser();
+
+    window.addEventListener("storage", syncStoredUser);
+    window.addEventListener("auth-changed", syncStoredUser);
 
     if (isTrialExpired(storedUser)) {
       setLoading(false);
-      return;
+      return () => {
+        window.removeEventListener("storage", syncStoredUser);
+        window.removeEventListener("auth-changed", syncStoredUser);
+      };
     }
 
     const authHeaders = getAuthHeaders();
 
     if (!authHeaders.Authorization) {
       setLoading(false);
-      return;
+      return () => {
+        window.removeEventListener("storage", syncStoredUser);
+        window.removeEventListener("auth-changed", syncStoredUser);
+      };
     }
 
     const cachedDashboard = readDashboardCache();
@@ -113,7 +127,14 @@ export default function Dashboard() {
         }
         setLoading(false);
       });
+
+    return () => {
+      window.removeEventListener("storage", syncStoredUser);
+      window.removeEventListener("auth-changed", syncStoredUser);
+    };
   }, [t]);
+
+  const trialExpired = !isOwner && trialDaysRemaining === 0;
 
   // Calculate KPIs
   const totalTrades = trades.length;
@@ -190,7 +211,7 @@ export default function Dashboard() {
       </div>
     );
 
-  if (isTrialExpired()) {
+  if (trialExpired) {
     return (
       <div className="dashboard-page">
         <div className="dashboard-banner dashboard-banner--danger">
@@ -204,6 +225,7 @@ export default function Dashboard() {
                 : t("dashboard.configuredExpiry"),
             })}
           </p>
+          <RenewAccessActions userEmail={userEmail} />
         </div>
       </div>
     );
@@ -252,6 +274,9 @@ export default function Dashboard() {
             {t("dashboard.trialEndDate", {
               date: trialEndsAt ? formatLongDate(trialEndsAt) : t("dashboard.notAvailable"),
             })}
+          </div>
+          <div style={{ marginTop: "14px" }}>
+            <RenewAccessActions userEmail={userEmail} />
           </div>
         </div>
       ) : null}
