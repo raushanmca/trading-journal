@@ -10,6 +10,11 @@ import {
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
 import { useAppDateFormatter } from "../localization/date";
+import {
+  isDashboardCacheFresh,
+  readDashboardCache,
+  writeDashboardCache,
+} from "../features/dashboard/dashboardCache";
 const BASE_URL = getApiBaseUrl();
 import {
   Chart as ChartJS,
@@ -80,17 +85,28 @@ export default function Dashboard() {
       return;
     }
 
+    const cachedDashboard = readDashboardCache();
+    if (cachedDashboard) {
+      setTrades(cachedDashboard.trades);
+
+      if (isDashboardCacheFresh(cachedDashboard.savedAt)) {
+        setLoading(false);
+      }
+    }
+
     axios
       .get(`${BASE_URL}/api/journal`, {
         headers: authHeaders,
       })
       .then((res) => {
         setTrades(res.data);
+        writeDashboardCache(res.data);
+        setErrorMessage("");
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
-        if (axios.isAxiosError(err)) {
+        if (axios.isAxiosError(err) && !cachedDashboard) {
           setErrorMessage(
             err.response?.data?.message || t("dashboard.loadFailed"),
           );
