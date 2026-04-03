@@ -1,9 +1,11 @@
 import { Link, NavLink } from "react-router-dom";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { StoredUser } from "../../features/auth/types";
 import { useLocalization } from "../../localization/LocalizationProvider";
 import { useAppDateFormatter } from "../../localization/date";
 import { TrialStatusToast } from "./TrialStatusToast";
+import { AdminNotifications } from "../../components/AdminNotifications";
+import LoginForm from "../../components/LoginForm";
 
 interface AppShellProps {
   accountMenuRef: React.RefObject<HTMLDivElement | null>;
@@ -32,19 +34,26 @@ export function AppShell({
 }: AppShellProps) {
   const { locale, locales, setLocale, t } = useLocalization();
   const { formatShortDate } = useAppDateFormatter();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   return (
     <div className="app-shell">
       <header className="app-shell__header">
         <div className="app-shell__header-inner">
           <div className="app-shell__brand">
             <Link to={isSignedIn ? "/" : "/login"} className="app-shell__logo">
-              <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Trading Journal logo" />
+              <img
+                src={`${import.meta.env.BASE_URL}favicon.svg`}
+                alt="Trading Journal logo"
+              />
             </Link>
             <div>
               <p className="app-shell__title">{t("app.title")}</p>
               <p className="app-shell__subtitle">{t("app.subtitle")}</p>
             </div>
           </div>
+
+          {/* Admin notification for OWNER_EMAIL, below header */}
+          {user?.email === "rshan45@gmail.com" && <AdminNotifications />}
 
           {isSignedIn ? (
             <nav className="app-shell__nav" aria-label="Primary">
@@ -65,16 +74,27 @@ export function AppShell({
               >
                 {t("nav.dashboard")}
               </NavLink>
+              {user?.email === "rshan45@gmail.com" && (
+                <NavLink
+                  to="/admin/users"
+                  className={({ isActive }) =>
+                    `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+                  }
+                >
+                  {t("nav.adminUsers")}
+                </NavLink>
+              )}
             </nav>
           ) : null}
 
           <div className="app-shell__controls">
             <label className="app-shell__locale">
-              <span className="app-shell__locale-label">{t("nav.language")}</span>
               <select
                 className="app-shell__locale-select"
                 value={locale}
-                onChange={(event) => setLocale(event.target.value as typeof locale)}
+                onChange={(event) =>
+                  setLocale(event.target.value as typeof locale)
+                }
               >
                 {locales.map((option) => (
                   <option key={option} value={option}>
@@ -107,7 +127,9 @@ export function AppShell({
                       <span className="app-shell__menu-name">
                         {user?.name || t("nav.signedIn")}
                       </span>
-                      <span className="app-shell__menu-email">{user?.email}</span>
+                      <span className="app-shell__menu-email">
+                        {user?.email}
+                      </span>
                       {!user?.isOwner && user?.trialEndsAt ? (
                         <div className="app-shell__menu-trial">
                           {trialDaysRemaining === 0
@@ -127,22 +149,51 @@ export function AppShell({
                       {t("nav.dashboard")}
                     </Link>
 
-                    <button onClick={onSignOut} className="app-shell__menu-action">
+                    <button
+                      onClick={onSignOut}
+                      className="app-shell__menu-action"
+                    >
                       {t("nav.signOut")}
                     </button>
                   </div>
                 ) : null}
               </div>
             ) : (
-              <Link to="/login" className="app-shell__sign-in">
+              <button
+                type="button"
+                className="app-shell__sign-in"
+                onClick={() => setIsAuthModalOpen(true)}
+              >
                 {t("nav.signIn")}
-              </Link>
+              </button>
             )}
           </div>
         </div>
       </header>
 
       {children}
+      {isAuthModalOpen ? (
+        <div className="auth-modal">
+          <button
+            type="button"
+            className="auth-modal__overlay"
+            onClick={() => setIsAuthModalOpen(false)}
+          />
+          <div className="auth-modal__content">
+            <button
+              type="button"
+              className="auth-modal__close"
+              onClick={() => setIsAuthModalOpen(false)}
+            >
+              {t("auth.close")}
+            </button>
+            <div className="auth-modal__eyebrow">{t("login.eyebrow")}</div>
+            <h2 className="auth-modal__title">{t("login.title")}</h2>
+            <p className="auth-modal__lead">{t("login.description")}</p>
+            <LoginForm onComplete={() => setIsAuthModalOpen(false)} />
+          </div>
+        </div>
+      ) : null}
       <TrialStatusToast
         trialDaysRemaining={trialDaysRemaining}
         isOwner={user?.isOwner}

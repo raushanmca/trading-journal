@@ -96,8 +96,7 @@ export default function AIJournalChatbot() {
       }
     } catch (error) {
       const message = axios.isAxiosError(error)
-        ? error.response?.data?.message ||
-          t("ai.processingFailed")
+        ? error.response?.data?.message || t("ai.processingFailed")
         : t("ai.processingFailed");
 
       setMessages((prev) => [
@@ -272,13 +271,15 @@ export default function AIJournalChatbot() {
               lineHeight: "1.6",
             }}
           >
-            <strong>{t("ai.confirmInstrument")}</strong> {parsedEntry.instrument}
+            <strong>{t("ai.confirmInstrument")}</strong>{" "}
+            {parsedEntry.instrument}
             <br />
             <strong>{t("ai.confirmPnl")}</strong> ₹{parsedEntry.pnl}
             <br />
             <strong>{t("ai.confirmRating")}</strong> {parsedEntry.rating}/5
             <br />
-            <strong>{t("ai.confirmLessons")}</strong> {parsedEntry.mistakes.join(", ")}
+            <strong>{t("ai.confirmLessons")}</strong>{" "}
+            {parsedEntry.mistakes.join(", ")}
           </div>
 
           <div style={{ display: "flex", gap: "12px" }}>

@@ -1,3 +1,7 @@
+// ...existing code...
+
+import { AdminUserList } from "../../components/AdminUserList";
+
 import { Navigate, Route, Routes } from "react-router-dom";
 import JournalForm from "../../components/JournalForm";
 import Dashboard from "../../components/Dashboard";
@@ -26,6 +30,18 @@ export function AppRoutes({ isSignedIn, user }: AppRoutesProps) {
         element={
           <ProtectedRoute isSignedIn={isSignedIn} user={user} allowExpired>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute isSignedIn={isSignedIn} user={user}>
+            {user?.email === "rshan45@gmail.com" ? (
+              <AdminUserList />
+            ) : (
+              <Navigate to="/" replace />
+            )}
           </ProtectedRoute>
         }
       />

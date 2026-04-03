@@ -25,6 +25,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "google",
     },
+    passwordHash: {
+      type: String,
+      default: "",
+    },
     isOwner: {
       type: Boolean,
       default: false,
