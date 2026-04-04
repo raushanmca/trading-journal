@@ -54,8 +54,16 @@ function DraggableCard({ id, index, moveCard, children }: any) {
 export default function JournalForm() {
   const { locale, t } = useLocalization();
   const storedUser = getStoredUser();
+  const clockPreferenceKey = getUserStorageKey("journal-clock-mode");
   const [layout, setLayout] = useState(() => buildLayout());
-  const [clockMode, setClockMode] = useState<"digital" | "analog">("digital");
+  const [clockMode, setClockMode] = useState<"digital" | "analog">(() => {
+    if (!clockPreferenceKey) {
+      return "digital";
+    }
+
+    const savedClockMode = localStorage.getItem(clockPreferenceKey);
+    return savedClockMode === "analog" ? "analog" : "digital";
+  });
   const [showDailyTip, setShowDailyTip] = useState(true);
   const [currentTime, setCurrentTime] = useState(() =>
     new Intl.DateTimeFormat(locale === "hi" ? "hi-IN" : "en-IN", {
@@ -136,6 +144,14 @@ export default function JournalForm() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (!clockPreferenceKey) {
+      return;
+    }
+
+    localStorage.setItem(clockPreferenceKey, clockMode);
+  }, [clockMode, clockPreferenceKey]);
+
   const moveCard = (from: number, to: number) => {
     const updated = [...layout];
     const [moved] = updated.splice(from, 1);
@@ -167,7 +183,12 @@ export default function JournalForm() {
       Date.UTC(now.getFullYear(), 0, 0)) /
       86400000,
   );
-  const dailyTip = t(tipKeys[dayOfYear % tipKeys.length]);
+  const userIdentity = storedUser?.email || storedUser?.name || "guest";
+  const userSeed = [...userIdentity].reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
+  const dailyTip = t(tipKeys[(dayOfYear + userSeed) % tipKeys.length]);
 
   return (
     <div className="page-container">
