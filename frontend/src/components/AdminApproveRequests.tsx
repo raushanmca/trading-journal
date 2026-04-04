@@ -49,57 +49,58 @@ export function AdminApproveRequests() {
     }
   }
 
-  if (loading) return <div>{t("admin.loadingApprovals")}</div>;
-  if (error) return <div>{t("admin.errorApprovals")}</div>;
+  const formatDateTime = (value?: string) =>
+    value ? new Date(value).toLocaleString() : "-";
+
+  if (loading) return <div className="admin-state">{t("admin.loadingApprovals")}</div>;
+  if (error) return <div className="admin-state admin-state--error">{t("admin.errorApprovals")}</div>;
   return (
-    <div className="admin-user-list">
-      <h3>{t("admin.headingApprovals")}</h3>
-      {success && (
-        <div style={{ color: "#047857", marginBottom: 12 }}>{success}</div>
-      )}
+    <div className="admin-dashboard">
+      <section className="admin-panel">
+        <div className="admin-section-header">
+          <div>
+            <h3>{t("admin.headingApprovals")}</h3>
+            <p>{t("admin.approvalsDescription")}</p>
+          </div>
+        </div>
+        {success && (
+          <div className="admin-feedback admin-feedback--success">{success}</div>
+        )}
       {requests.length === 0 ? (
-        <div>{t("admin.noRequests")}</div>
+        <div className="admin-empty-state">{t("admin.noRequests")}</div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>User Email</th>
-              <th>Reference</th>
-              <th>Requested At</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((r) => (
-              <tr key={r._id}>
-                <td>{r.email}</td>
-                <td>{r.paymentReference || "-"}</td>
-                <td>
-                  {r.requestedAt
-                    ? new Date(r.requestedAt).toLocaleString()
-                    : "-"}
-                </td>
-                <td>
-                  <button
-                    onClick={() => approveRequest(r._id)}
-                    style={{
-                      background: "#0f766e",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 8,
-                      padding: "6px 14px",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {t("admin.approve")}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="admin-request-grid">
+          {requests.map((r) => (
+            <article key={r._id} className="admin-request-card">
+              <div className="admin-request-card__row">
+                <span className="admin-request-card__label">
+                  {t("admin.requestEmail")}
+                </span>
+                <strong>{r.email}</strong>
+              </div>
+              <div className="admin-request-card__row">
+                <span className="admin-request-card__label">
+                  {t("admin.requestReference")}
+                </span>
+                <strong>{r.paymentReference || t("admin.notAvailable")}</strong>
+              </div>
+              <div className="admin-request-card__row">
+                <span className="admin-request-card__label">
+                  {t("admin.requestedAt")}
+                </span>
+                <strong>{formatDateTime(r.requestedAt)}</strong>
+              </div>
+              <button
+                className="admin-action-button"
+                onClick={() => approveRequest(r._id)}
+              >
+                {t("admin.approve")}
+              </button>
+            </article>
+          ))}
+        </div>
       )}
+      </section>
     </div>
   );
 }

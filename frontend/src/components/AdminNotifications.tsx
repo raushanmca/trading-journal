@@ -30,7 +30,8 @@ export function AdminNotifications() {
   if (pendingCount === 0) return null;
   return (
     <div className="admin-notification">
-      {pendingCount} payment approval request(s) pending
+      <span className="admin-notification__badge">{pendingCount}</span>
+      <span>{pendingCount === 1 ? "Approval request needs review" : "Approval requests need review"}</span>
     </div>
   );
 }

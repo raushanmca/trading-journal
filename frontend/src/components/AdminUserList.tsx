@@ -15,6 +15,19 @@ export function AdminUserList() {
 
   const { t } = useLocalization();
 
+  const totalUsers = users.length;
+  const ownerCount = users.filter((user) => user.isOwner).length;
+  const activeTrials = users.filter(
+    (user) => user.trialEndsAt && new Date(user.trialEndsAt) > new Date(),
+  ).length;
+  const pendingCount = pendingRequests.length;
+
+  const formatDate = (value?: string) =>
+    value ? new Date(value).toLocaleDateString() : "-";
+
+  const formatDateTime = (value?: string) =>
+    value ? new Date(value).toLocaleString() : "-";
+
   async function fetchUsersAndRequests() {
     setLoading(true);
     try {
@@ -58,98 +71,169 @@ export function AdminUserList() {
   }, []);
 
   if (loading)
-    return <div>{t("admin.loadingUsers") || "Loading users..."}</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
+    return <div className="admin-state">{t("admin.loadingUsers")}</div>;
+  if (error) return <div className="admin-state admin-state--error">{error}</div>;
 
   return (
-    <div className="admin-user-list">
-      <h3>{t("admin.headingUsers")}</h3>
-      {success && (
-        <div style={{ color: "#047857", marginBottom: 12 }}>{success}</div>
+    <div className="admin-dashboard">
+      <section className="admin-panel admin-panel--hero">
+        <div>
+          <p className="admin-panel__eyebrow">{t("nav.adminUsers")}</p>
+          <h2 className="admin-panel__title">{t("admin.headingUsers")}</h2>
+          <p className="admin-panel__description">
+            {t("admin.subtitleUsers")}
+          </p>
+        </div>
+        <div className="admin-summary-grid">
+          <article className="admin-summary-card">
+            <span className="admin-summary-card__label">
+              {t("admin.metricUsers")}
+            </span>
+            <strong className="admin-summary-card__value">{totalUsers}</strong>
+          </article>
+          <article className="admin-summary-card">
+            <span className="admin-summary-card__label">
+              {t("admin.metricPending")}
+            </span>
+            <strong className="admin-summary-card__value">{pendingCount}</strong>
+          </article>
+          <article className="admin-summary-card">
+            <span className="admin-summary-card__label">
+              {t("admin.metricActiveTrials")}
+            </span>
+            <strong className="admin-summary-card__value">{activeTrials}</strong>
+          </article>
+          <article className="admin-summary-card">
+            <span className="admin-summary-card__label">
+              {t("admin.metricOwners")}
+            </span>
+            <strong className="admin-summary-card__value">{ownerCount}</strong>
+          </article>
+        </div>
+      </section>
+
+      {success && <div className="admin-feedback admin-feedback--success">{success}</div>}
+      {pendingCount > 0 && (
+        <div className="admin-feedback admin-feedback--warning">
+          {t("admin.pendingSummary").replace("{count}", String(pendingCount))}
+        </div>
       )}
 
-      <details style={{ marginBottom: 12 }}>
-        <summary>Debug: Pending Requests</summary>
-        <pre
-          style={{
-            fontSize: 12,
-            background: "#f3f3f3",
-            padding: 8,
-            borderRadius: 6,
-          }}
-        >
-          {JSON.stringify(pendingRequests, null, 2)}
-        </pre>
-      </details>
+      <section className="admin-panel">
+        <div className="admin-section-header">
+          <div>
+            <h3>{t("admin.userTableTitle")}</h3>
+            <p>{t("admin.userTableDescription")}</p>
+          </div>
+        </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>{t("nav.journal")}</th>
-            <th>{t("dashboard.trialEndDate")}</th>
-            <th>Login Count</th>
-            <th>Last Login</th>
-            <th>Renewal Count</th>
-            <th>Is Owner</th>
-            <th>Pending Approval</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => {
-            const req = pendingRequests.find((r) => r.email === u.email);
-            return (
-              <tr key={u._id}>
-                <td>{u.email}</td>
-                <td>{u.name}</td>
-                <td>
-                  {u.trialEndsAt
-                    ? new Date(u.trialEndsAt).toLocaleDateString()
-                    : "-"}
-                </td>
-                <td>{u.loginCount || 0}</td>
-                <td>
-                  {u.lastLoginAt
-                    ? new Date(u.lastLoginAt).toLocaleString()
-                    : "-"}
-                </td>
-                <td>{u.renewalCount || 0}</td>
-                <td>{u.isOwner ? t("nav.ownerAccess") : "No"}</td>
-                <td>
-                  {req ? (
-                    <>
-                      <div>Ref: {req.paymentReference || "-"}</div>
-                      <div>
-                        At:{" "}
-                        {req.requestedAt
-                          ? new Date(req.requestedAt).toLocaleString()
-                          : "-"}
-                      </div>
-                      <button
-                        onClick={() => approveRequest(req._id)}
-                        style={{
-                          background: "#0f766e",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 8,
-                          padding: "6px 14px",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          marginTop: 4,
-                        }}
-                      >
-                        {t("admin.approve")}
-                      </button>
-                    </>
-                  ) : (
-                    "-"
-                  )}
-                </td>
+        <div className="admin-table-shell">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>{t("admin.columnUser")}</th>
+                <th>{t("dashboard.trialEndDate")}</th>
+                <th>{t("admin.columnLoginCount")}</th>
+                <th>{t("admin.columnLastLogin")}</th>
+                <th>{t("admin.columnRenewals")}</th>
+                <th>{t("admin.columnOwner")}</th>
+                <th>{t("admin.columnApproval")}</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {users.map((u) => {
+                const req = pendingRequests.find((r) => r.email === u.email);
+                return (
+                  <tr key={u._id}>
+                    <td>
+                      <div className="admin-user-cell">
+                        <strong>{u.name || t("admin.unknownUser")}</strong>
+                        <span>{u.email}</span>
+                      </div>
+                    </td>
+                    <td>{formatDate(u.trialEndsAt)}</td>
+                    <td>{u.loginCount || 0}</td>
+                    <td>{formatDateTime(u.lastLoginAt)}</td>
+                    <td>{u.renewalCount || 0}</td>
+                    <td>
+                      <span
+                        className={`admin-badge ${u.isOwner ? "admin-badge--owner" : "admin-badge--muted"}`}
+                      >
+                        {u.isOwner ? t("admin.ownerYes") : t("admin.ownerNo")}
+                      </span>
+                    </td>
+                    <td>
+                      {req ? (
+                        <div className="admin-approval-cell">
+                          <span className="admin-badge admin-badge--pending">
+                            {t("admin.statusPending")}
+                          </span>
+                          <span>{req.paymentReference || t("admin.notAvailable")}</span>
+                          <span>{formatDateTime(req.requestedAt)}</span>
+                          <button
+                            className="admin-action-button"
+                            onClick={() => approveRequest(req._id)}
+                          >
+                            {t("admin.approve")}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="admin-badge admin-badge--muted">
+                          {t("admin.statusClear")}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="admin-panel">
+        <div className="admin-section-header">
+          <div>
+            <h3>{t("admin.headingApprovals")}</h3>
+            <p>{t("admin.approvalsDescription")}</p>
+          </div>
+        </div>
+
+        {pendingRequests.length === 0 ? (
+          <div className="admin-empty-state">{t("admin.noRequests")}</div>
+        ) : (
+          <div className="admin-request-grid">
+            {pendingRequests.map((request) => (
+              <article key={request._id} className="admin-request-card">
+                <div className="admin-request-card__row">
+                  <span className="admin-request-card__label">
+                    {t("admin.requestEmail")}
+                  </span>
+                  <strong>{request.email}</strong>
+                </div>
+                <div className="admin-request-card__row">
+                  <span className="admin-request-card__label">
+                    {t("admin.requestReference")}
+                  </span>
+                  <strong>{request.paymentReference || t("admin.notAvailable")}</strong>
+                </div>
+                <div className="admin-request-card__row">
+                  <span className="admin-request-card__label">
+                    {t("admin.requestedAt")}
+                  </span>
+                  <strong>{formatDateTime(request.requestedAt)}</strong>
+                </div>
+                <button
+                  className="admin-action-button"
+                  onClick={() => approveRequest(request._id)}
+                >
+                  {t("admin.approve")}
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
