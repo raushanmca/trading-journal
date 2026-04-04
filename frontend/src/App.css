@@ -346,19 +346,18 @@
 .app-shell__brand {
   display: flex;
   align-items: center;
-  gap: 16px;
   flex-shrink: 0;
-  max-width: 560px;
+  max-width: 340px;
   min-width: 0;
 }
 
 .app-shell__logo {
-  width: clamp(240px, 28vw, 320px);
-  height: 64px;
-  border-radius: 20px;
+  width: clamp(220px, 24vw, 272px);
+  height: 72px;
+  border-radius: 18px;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.6);
+  background: transparent;
 }
 
 .app-shell__logo img {
@@ -366,24 +365,6 @@
   height: 100%;
   display: block;
   object-fit: contain;
-}
-
-.app-shell__brand-copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.app-shell__brand-copy strong {
-  color: #0f172a;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.app-shell__brand-copy span {
-  color: #64748b;
-  font-size: 0.8rem;
-  line-height: 1.4;
 }
 
 .app-shell__nav {

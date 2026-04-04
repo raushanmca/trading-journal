@@ -64,7 +64,7 @@ export function AppShell({
           <div className="app-shell__brand">
             <Link to={isSignedIn ? "/" : "/login"} className="app-shell__logo">
               <img
-                src={`${import.meta.env.BASE_URL}brand-logo.svg`}
+                src={`${import.meta.env.BASE_URL}brand-logo-header.svg`}
                 alt="TRA Journal by Raushan"
               />
             </Link>

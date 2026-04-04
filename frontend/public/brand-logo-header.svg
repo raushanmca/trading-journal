@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 272 72" fill="none">
+  <defs>
+    <linearGradient id="header-bg" x1="8" y1="8" x2="88" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f172a"/>
+      <stop offset="0.55" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="header-line" x1="24" y1="18" x2="66" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="6" y="6" width="72" height="60" rx="20" fill="url(#header-bg)"/>
+  <path d="M22 44c6-8.5 12.667-12.75 20-12.75c5 0 9.75 1.417 14.25 4.25S65 39 70 32" stroke="url(#header-line)" stroke-linecap="round" stroke-width="3"/>
+  <path d="M22 21h34" stroke="#E2E8F0" stroke-linecap="round" stroke-width="3"/>
+  <path d="M22 29h24" stroke="#E2E8F0" stroke-linecap="round" stroke-opacity=".78" stroke-width="2.5"/>
+  <path d="M22 36h15" stroke="#E2E8F0" stroke-linecap="round" stroke-opacity=".56" stroke-width="2.5"/>
+  <path d="M49 18v29" stroke="#F8FAFC" stroke-linecap="round" stroke-width="2.5"/>
+  <circle cx="49" cy="27" r="4.8" fill="#22C55E"/>
+  <path d="M27 15h11l-3.5 6h4.8L29 32l3.4-7h-5.8z" fill="#F8FAFC"/>
+
+  <text x="94" y="31" fill="#0F172A" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="26" font-weight="800" letter-spacing="1">TRJ</text>
+  <text x="94" y="54" fill="#0F766E" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="20" font-weight="800" letter-spacing=".5">Journal</text>
+  <text x="182" y="55" fill="#64748B" font-family="Brush Script MT, Segoe Script, cursive" font-size="18" font-weight="700">~ Raushan</text>
+</svg>

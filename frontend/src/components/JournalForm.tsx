@@ -5,7 +5,7 @@ import InstrumentsSidebar from "./InstrumentsSidebar";
 import JournalCard from "./JournalCard";
 import LessonsSidebar from "./LessonsSidebar";
 import AIJournalChatbot from "./AIJournalChatbot";
-import { getUserStorageKey } from "../utils/auth";
+import { getStoredUser, getUserStorageKey } from "../utils/auth";
 import "./JournalForm.css";
 import { useLocalization } from "../localization/LocalizationProvider";
 
@@ -52,8 +52,17 @@ function DraggableCard({ id, index, moveCard, children }: any) {
 }
 
 export default function JournalForm() {
-  const { t } = useLocalization();
+  const { locale, t } = useLocalization();
+  const storedUser = getStoredUser();
   const [layout, setLayout] = useState(() => buildLayout());
+  const [clockMode, setClockMode] = useState<"digital" | "analog">("digital");
+  const [currentTime, setCurrentTime] = useState(() =>
+    new Intl.DateTimeFormat(locale === "hi" ? "hi-IN" : "en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(new Date()),
+  );
 
   useEffect(() => {
     const storageKey = getUserStorageKey("journal-layout");
@@ -102,12 +111,43 @@ export default function JournalForm() {
     );
   }, [layout]);
 
+  useEffect(() => {
+    const formatter = new Intl.DateTimeFormat(
+      locale === "hi" ? "hi-IN" : "en-IN",
+      {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+      },
+    );
+
+    const updateTime = () => setCurrentTime(formatter.format(new Date()));
+
+    updateTime();
+    const timer = window.setInterval(updateTime, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [locale]);
+
   const moveCard = (from: number, to: number) => {
     const updated = [...layout];
     const [moved] = updated.splice(from, 1);
     updated.splice(to, 0, moved);
     setLayout(updated);
   };
+
+  const now = new Date();
+  const seconds = now.getSeconds();
+  const minutes = now.getMinutes();
+  const hours = now.getHours() % 12;
+  const greetingKey =
+    now.getHours() < 12
+      ? "journal.greetingMorning"
+      : now.getHours() < 17
+        ? "journal.greetingAfternoon"
+        : "journal.greetingEvening";
+  const greetingName =
+    storedUser?.name?.split(" ")[0] || storedUser?.email?.split("@")[0] || "";
 
   return (
     <div className="page-container">
@@ -117,10 +157,61 @@ export default function JournalForm() {
             {t("journal.pageEyebrow")}
           </div>
           <div className="journal-page-hero__content">
-            <h1>{t("journal.pageTitle")}</h1>
+            <div className="journal-page-hero__title-group">
+              <h1>{t("journal.pageTitle")}</h1>
+              <span className="journal-page-hero__greeting">
+                {t(greetingKey)} {greetingName}
+              </span>
+            </div>
+            <div className="journal-page-hero__clock">
+              <div className="journal-page-hero__clock-toggle">
+                <button
+                  type="button"
+                  className={`journal-page-hero__clock-button${clockMode === "digital" ? " journal-page-hero__clock-button--active" : ""}`}
+                  onClick={() => setClockMode("digital")}
+                >
+                  {t("journal.clockDigital")}
+                </button>
+                <button
+                  type="button"
+                  className={`journal-page-hero__clock-button${clockMode === "analog" ? " journal-page-hero__clock-button--active" : ""}`}
+                  onClick={() => setClockMode("analog")}
+                >
+                  {t("journal.clockAnalog")}
+                </button>
+              </div>
+              {clockMode === "digital" ? (
+                <div className="journal-page-hero__clock-digital">
+                  {currentTime}
+                </div>
+              ) : (
+                <div className="journal-page-hero__clock-analog" aria-label={currentTime}>
+                  <span className="journal-page-hero__clock-number journal-page-hero__clock-number--12">12</span>
+                  <span className="journal-page-hero__clock-number journal-page-hero__clock-number--3">3</span>
+                  <span className="journal-page-hero__clock-number journal-page-hero__clock-number--6">6</span>
+                  <span className="journal-page-hero__clock-number journal-page-hero__clock-number--9">9</span>
+                  <span className="journal-page-hero__clock-mark journal-page-hero__clock-mark--top" />
+                  <span className="journal-page-hero__clock-mark journal-page-hero__clock-mark--right" />
+                  <span className="journal-page-hero__clock-mark journal-page-hero__clock-mark--bottom" />
+                  <span className="journal-page-hero__clock-mark journal-page-hero__clock-mark--left" />
+                  <span
+                    className="journal-page-hero__clock-hand journal-page-hero__clock-hand--hour"
+                    style={{ transform: `translateX(-50%) rotate(${hours * 30 + minutes * 0.5}deg)` }}
+                  />
+                  <span
+                    className="journal-page-hero__clock-hand journal-page-hero__clock-hand--minute"
+                    style={{ transform: `translateX(-50%) rotate(${minutes * 6 + seconds * 0.1}deg)` }}
+                  />
+                  <span
+                    className="journal-page-hero__clock-hand journal-page-hero__clock-hand--second"
+                    style={{ transform: `translateX(-50%) rotate(${seconds * 6}deg)` }}
+                  />
+                  <span className="journal-page-hero__clock-center" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <div className="journal-page-hero__chip">{t("journal.pageChip")}</div>
       </section>
       <div className="journal-form-container">
         {layout.map((item, index) => (

@@ -9,12 +9,9 @@ body {
 }
 
 .journal-page-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  display: block;
   margin-bottom: 20px;
-  padding: 16px 20px;
+  padding: 18px 20px;
   border-radius: 24px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   background:
@@ -38,31 +35,187 @@ body {
 }
 
 .journal-page-hero__content {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 18px;
 }
 
 .journal-page-hero h1 {
   margin: 0;
   color: #0f172a;
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
-  line-height: 1.1;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.12;
+  max-width: 520px;
 }
 
-.journal-page-hero__chip {
+.journal-page-hero__title-group {
+  display: grid;
+  gap: 6px;
+}
+
+.journal-page-hero__greeting {
+  color: #64748b;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.journal-page-hero__clock {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  padding: 0 14px;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+}
+
+.journal-page-hero__clock-toggle {
+  display: inline-flex;
+  padding: 3px;
   border-radius: 999px;
-  background: rgba(15, 118, 110, 0.1);
-  color: #0f766e;
-  font-size: 0.82rem;
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.journal-page-hero__clock-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #526072;
+  font-size: 0.76rem;
   font-weight: 800;
-  white-space: nowrap;
+  cursor: pointer;
+}
+
+.journal-page-hero__clock-button--active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.journal-page-hero__clock-digital {
+  min-width: 106px;
+  padding: 0 8px;
+  color: #0f172a;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+  text-align: center;
+}
+
+.journal-page-hero__clock-analog {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82) 34%, rgba(226, 232, 240, 0.96) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    inset 0 -8px 18px rgba(15, 23, 42, 0.08),
+    0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.journal-page-hero__clock-analog::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.journal-page-hero__clock-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(71, 85, 105, 0.72);
+  transform-origin: center -19px;
+}
+
+.journal-page-hero__clock-mark--top { transform: translate(-50%, -50%) rotate(0deg); }
+.journal-page-hero__clock-mark--right { transform: translate(-50%, -50%) rotate(90deg); }
+.journal-page-hero__clock-mark--bottom { transform: translate(-50%, -50%) rotate(180deg); }
+.journal-page-hero__clock-mark--left { transform: translate(-50%, -50%) rotate(270deg); }
+
+.journal-page-hero__clock-number {
+  position: absolute;
+  color: #475569;
+  font-size: 0.52rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.journal-page-hero__clock-number--12 {
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.journal-page-hero__clock-number--3 {
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+}
+
+.journal-page-hero__clock-number--6 {
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.journal-page-hero__clock-number--9 {
+  top: 50%;
+  left: 7px;
+  transform: translateY(-50%);
+}
+
+.journal-page-hero__clock-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: bottom center;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14);
+}
+
+.journal-page-hero__clock-hand--hour {
+  width: 3.5px;
+  height: 15px;
+  background: linear-gradient(180deg, #0f172a, #1e293b);
+}
+
+.journal-page-hero__clock-hand--minute {
+  width: 2.5px;
+  height: 20px;
+  background: linear-gradient(180deg, #0f766e, #0f172a);
+}
+
+.journal-page-hero__clock-hand--second {
+  width: 1.5px;
+  height: 22px;
+  background: linear-gradient(180deg, #fb7185, #ef4444);
+  box-shadow: none;
+}
+
+.journal-page-hero__clock-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #ffffff, #0f172a 72%);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+  transform: translate(-50%, -50%);
 }
 
 .journal-form-container {
@@ -709,12 +862,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   .journal-page-hero {
     padding: 18px;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .journal-page-hero__content {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .journal-page-hero__clock {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .journal-form-container {
