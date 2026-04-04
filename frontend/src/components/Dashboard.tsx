@@ -49,9 +49,28 @@ interface Trade {
   mistakes?: string[];
 }
 
+function formatInputDate(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getCurrentMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  return {
+    from: formatInputDate(start),
+    to: formatInputDate(end),
+  };
+}
+
 export default function Dashboard() {
   const { t } = useLocalization();
   const { formatCompactDate, formatLongDate } = useAppDateFormatter();
+  const currentMonthRange = getCurrentMonthRange();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
@@ -62,6 +81,8 @@ export default function Dashboard() {
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
     null,
   );
+  const [dateFrom, setDateFrom] = useState(currentMonthRange.from);
+  const [dateTo, setDateTo] = useState(currentMonthRange.to);
 
   useEffect(() => {
     const syncStoredUser = () => {
@@ -136,30 +157,50 @@ export default function Dashboard() {
 
   const trialExpired = !isOwner && trialDaysRemaining === 0;
 
+  const filteredTrades = trades.filter((trade) => {
+    const tradeDate = trade.date ? formatInputDate(new Date(trade.date)) : "";
+
+    if (dateFrom && tradeDate < dateFrom) {
+      return false;
+    }
+
+    if (dateTo && tradeDate > dateTo) {
+      return false;
+    }
+
+    return true;
+  });
+
   // Calculate KPIs
-  const totalTrades = trades.length;
-  const totalPnL = trades.reduce((sum, t) => sum + t.pnl, 0);
+  const totalTrades = filteredTrades.length;
+  const totalPnL = filteredTrades.reduce((sum, t) => sum + t.pnl, 0);
   const winRate =
     totalTrades > 0
-      ? Math.round((trades.filter((t) => t.pnl > 0).length / totalTrades) * 100)
+      ? Math.round(
+          (filteredTrades.filter((trade) => trade.pnl > 0).length /
+            totalTrades) *
+            100,
+        )
       : 0;
 
   const avgRating =
     totalTrades > 0
       ? (
-          trades.reduce((sum, t) => sum + (t.rating || 0), 0) / totalTrades
+          filteredTrades.reduce((sum, trade) => sum + (trade.rating || 0), 0) /
+          totalTrades
         ).toFixed(1)
       : "0.0";
 
   // Cumulative PnL for chart
   let cumulative = 0;
-  const cumulativePnL = trades.map((t) => {
-    cumulative += t.pnl;
+  const chartTrades = [...filteredTrades].reverse();
+  const cumulativePnL = chartTrades.map((trade) => {
+    cumulative += trade.pnl;
     return cumulative;
   });
 
   const chartData = {
-    labels: trades.map((_, i) => t("dashboard.tradeLabel", { index: i + 1 })),
+    labels: chartTrades.map((trade) => formatCompactDate(trade.date)),
     datasets: [
       {
         label: t("dashboard.chartTitle"),
@@ -282,6 +323,50 @@ export default function Dashboard() {
       ) : null}
       {errorMessage ? <div className="dashboard-banner dashboard-banner--danger">{errorMessage}</div> : null}
 
+      <div className="dashboard-filters">
+        <div className="dashboard-filters__copy">
+          <div className="dashboard-panel__title">{t("dashboard.reportRange")}</div>
+          <p className="dashboard-panel__subtitle">{t("dashboard.reportRangeSubtitle")}</p>
+        </div>
+        <label className="dashboard-filters__field">
+          <span>{t("dashboard.fromDate")}</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(event) => setDateFrom(event.target.value)}
+          />
+        </label>
+        <label className="dashboard-filters__field">
+          <span>{t("dashboard.toDate")}</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(event) => setDateTo(event.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          className="dashboard-filters__action"
+          onClick={() => {
+            const range = getCurrentMonthRange();
+            setDateFrom(range.from);
+            setDateTo(range.to);
+          }}
+        >
+          {t("dashboard.currentMonth")}
+        </button>
+        <button
+          type="button"
+          className="dashboard-filters__action dashboard-filters__action--ghost"
+          onClick={() => {
+            setDateFrom("");
+            setDateTo("");
+          }}
+        >
+          {t("dashboard.allTime")}
+        </button>
+      </div>
+
       <div className="dashboard-kpis">
         <div className="dashboard-kpi">
           <span className="dashboard-kpi__label">{t("dashboard.totalTrades")}</span>
@@ -314,7 +399,7 @@ export default function Dashboard() {
         <div className="dashboard-chart">
           <h3 className="dashboard-panel__title">{t("dashboard.chartTitle")}</h3>
           <p className="dashboard-panel__subtitle">{t("dashboard.chartSubtitle")}</p>
-          {trades.length > 0 ? (
+          {filteredTrades.length > 0 ? (
             <Line data={chartData} options={chartOptions} />
           ) : (
             <div className="dashboard-empty">{t("dashboard.noTrades")}</div>
@@ -324,13 +409,12 @@ export default function Dashboard() {
         <div className="dashboard-trades">
           <h3 className="dashboard-panel__title">{t("dashboard.recentTrades")}</h3>
           <p className="dashboard-panel__subtitle">{t("dashboard.recentTradesSubtitle")}</p>
-          {trades.length === 0 ? (
+          {filteredTrades.length === 0 ? (
             <div className="dashboard-empty">{t("dashboard.noTradesRecorded")}</div>
           ) : (
             <div style={{ maxHeight: "500px", overflowY: "auto" }}>
-              {trades
-                .slice(-8)
-                .reverse()
+              {filteredTrades
+                .slice(0, 8)
                 .map((trade, index) => (
                   <div
                     key={trade._id || index}
