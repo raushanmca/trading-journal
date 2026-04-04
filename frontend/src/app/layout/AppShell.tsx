@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { StoredUser } from "../../features/auth/types";
 import { useLocalization } from "../../localization/LocalizationProvider";
 import { useAppDateFormatter } from "../../localization/date";
@@ -35,6 +35,13 @@ export function AppShell({
   const { locale, locales, setLocale, t } = useLocalization();
   const { formatShortDate } = useAppDateFormatter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      setIsAuthModalOpen(false);
+    }
+  }, [isSignedIn]);
+
   return (
     <div className="app-shell">
       <header className="app-shell__header">

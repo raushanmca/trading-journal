@@ -706,13 +706,6 @@
   font-weight: 600;
 }
 
-.login-panel__github {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .login-panel__spinner {
   width: 20px;
   height: 20px;
@@ -724,16 +717,6 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-  border: none;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #111827 0%, #334155 100%);
-  color: #fffef6;
-  padding: 16px;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
 }
 
 .login-panel__note {

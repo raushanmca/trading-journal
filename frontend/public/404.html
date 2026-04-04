@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Trading Journal</title>
+    <script>
+      (function redirectToApp() {
+        const { pathname, search, hash } = window.location;
+        const normalizedSearch = search.replace(/&/g, "~and~");
+        const target = `/trading-journal/?p=${encodeURIComponent(`${pathname}${normalizedSearch}${hash}`)}`;
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

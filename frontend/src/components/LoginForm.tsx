@@ -31,7 +31,6 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
       return;
     }
 
-    alert(t("login.alert.success"));
     navigate("/dashboard");
     onComplete?.();
   };
