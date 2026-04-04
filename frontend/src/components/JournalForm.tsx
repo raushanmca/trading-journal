@@ -56,6 +56,7 @@ export default function JournalForm() {
   const storedUser = getStoredUser();
   const [layout, setLayout] = useState(() => buildLayout());
   const [clockMode, setClockMode] = useState<"digital" | "analog">("digital");
+  const [showDailyTip, setShowDailyTip] = useState(true);
   const [currentTime, setCurrentTime] = useState(() =>
     new Intl.DateTimeFormat(locale === "hi" ? "hi-IN" : "en-IN", {
       hour: "numeric",
@@ -129,6 +130,12 @@ export default function JournalForm() {
     return () => window.clearInterval(timer);
   }, [locale]);
 
+  useEffect(() => {
+    setShowDailyTip(true);
+    const timer = window.setTimeout(() => setShowDailyTip(false), 10000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const moveCard = (from: number, to: number) => {
     const updated = [...layout];
     const [moved] = updated.splice(from, 1);
@@ -148,6 +155,19 @@ export default function JournalForm() {
         : "journal.greetingEvening";
   const greetingName =
     storedUser?.name?.split(" ")[0] || storedUser?.email?.split("@")[0] || "";
+  const tipKeys = [
+    "journal.tipOne",
+    "journal.tipTwo",
+    "journal.tipThree",
+    "journal.tipFour",
+    "journal.tipFive",
+  ] as const;
+  const dayOfYear = Math.floor(
+    (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
+      Date.UTC(now.getFullYear(), 0, 0)) /
+      86400000,
+  );
+  const dailyTip = t(tipKeys[dayOfYear % tipKeys.length]);
 
   return (
     <div className="page-container">
@@ -162,6 +182,14 @@ export default function JournalForm() {
               <span className="journal-page-hero__greeting">
                 {t(greetingKey)} {greetingName}
               </span>
+              {showDailyTip ? (
+                <div className="journal-page-hero__tip">
+                  <span className="journal-page-hero__tip-label">
+                    {t("journal.tipLabel")}
+                  </span>
+                  <span>{dailyTip}</span>
+                </div>
+              ) : null}
             </div>
             <div className="journal-page-hero__clock">
               <div className="journal-page-hero__clock-toggle">

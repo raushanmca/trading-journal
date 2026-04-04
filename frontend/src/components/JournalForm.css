@@ -60,6 +60,30 @@ body {
   font-weight: 700;
 }
 
+.journal-page-hero__tip {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  color: #475569;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.journal-page-hero__tip-label {
+  color: #0f766e;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .journal-page-hero__clock {
   display: inline-flex;
   align-items: center;

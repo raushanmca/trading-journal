@@ -102,6 +102,7 @@ export default function Dashboard() {
   const [userEmail, setUserEmail] = useState("");
   const [trialEndsAt, setTrialEndsAt] = useState("");
   const [isOwner, setIsOwner] = useState(false);
+  const [renewalCount, setRenewalCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
     null,
@@ -119,6 +120,7 @@ export default function Dashboard() {
       setUserEmail(storedUser?.email || "");
       setTrialEndsAt(storedUser?.trialEndsAt || "");
       setIsOwner(Boolean(storedUser?.isOwner));
+      setRenewalCount(storedUser?.renewalCount || 0);
       setTrialDaysRemaining(getTrialDaysRemaining(storedUser));
 
       return storedUser;
@@ -183,6 +185,10 @@ export default function Dashboard() {
   }, [t]);
 
   const trialExpired = !isOwner && trialDaysRemaining === 0;
+  const shouldShowTrialBanner =
+    !isOwner &&
+    trialDaysRemaining !== null &&
+    (renewalCount === 0 || trialDaysRemaining <= 15);
 
   const filteredTrades = trades.filter((trade) => {
     const tradeDate = trade.date ? formatInputDate(new Date(trade.date)) : "";
@@ -499,7 +505,7 @@ export default function Dashboard() {
             email: userEmail || t("dashboard.yourAccount"),
           })}
         </div>
-      ) : trialDaysRemaining !== null ? (
+      ) : shouldShowTrialBanner ? (
         <div className="dashboard-banner dashboard-banner--trial">
           <div className="dashboard-banner__label">{t("dashboard.trialAccess")}</div>
           <div className="dashboard-banner__value">

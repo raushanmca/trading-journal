@@ -3,11 +3,13 @@ import { useLocalization } from "../../localization/LocalizationProvider";
 
 interface TrialStatusViewModelInput {
   isOwner?: boolean;
+  renewalCount?: number;
   trialDaysRemaining: number | null;
 }
 
 export function useTrialStatusViewModel({
   isOwner = false,
+  renewalCount = 0,
   trialDaysRemaining,
 }: TrialStatusViewModelInput) {
   const { t } = useLocalization();
@@ -31,6 +33,15 @@ export function useTrialStatusViewModel({
       };
     }
 
+    if (renewalCount > 0 && trialDaysRemaining > 15) {
+      return {
+        isVisible: false,
+        isExpired: false,
+        isWarning: false,
+        message: "",
+      };
+    }
+
     return {
       isVisible: true,
       isExpired: false,
@@ -40,5 +51,5 @@ export function useTrialStatusViewModel({
         suffix: trialDaysRemaining === 1 ? "" : "s",
       }),
     };
-  }, [isOwner, t, trialDaysRemaining]);
+  }, [isOwner, renewalCount, t, trialDaysRemaining]);
 }

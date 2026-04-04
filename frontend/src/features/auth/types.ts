@@ -2,6 +2,7 @@ export interface StoredUser {
   name?: string;
   email?: string;
   isOwner?: boolean;
+  renewalCount?: number;
   trialStartedAt?: string;
   trialEndsAt?: string;
   isTrialExpired?: boolean;

@@ -213,6 +213,7 @@ export function AppShell({
       <TrialStatusToast
         trialDaysRemaining={trialDaysRemaining}
         isOwner={user?.isOwner}
+        renewalCount={user?.renewalCount}
         userEmail={user?.email}
       />
     </div>

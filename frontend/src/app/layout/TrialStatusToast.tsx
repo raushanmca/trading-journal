@@ -6,18 +6,21 @@ import { useTrialStatusViewModel } from "../../features/trial/useTrialStatusView
 interface TrialStatusToastProps {
   trialDaysRemaining: number | null;
   isOwner?: boolean;
+  renewalCount?: number;
   userEmail?: string;
 }
 
 export function TrialStatusToast({
   trialDaysRemaining,
   isOwner = false,
+  renewalCount = 0,
   userEmail = "",
 }: TrialStatusToastProps) {
   const { t } = useLocalization();
   const [isDismissed, setIsDismissed] = useState(false);
   const trialStatus = useTrialStatusViewModel({
     isOwner,
+    renewalCount,
     trialDaysRemaining,
   });
 
