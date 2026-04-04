@@ -618,6 +618,18 @@
   gap: 16px;
 }
 
+.login-panel__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(15, 118, 110, 0.08);
+  color: #0f172a;
+  font-weight: 700;
+}
+
 .login-panel__divider {
   position: relative;
   display: flex;
@@ -672,6 +684,10 @@
 
 .login-panel__submit {
   margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   border: none;
   border-radius: 14px;
   background: #0f172a;
@@ -713,6 +729,11 @@
   border-top-color: #fffef6;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+.login-panel__spinner--dark {
+  border-color: rgba(15, 23, 42, 0.18);
+  border-top-color: #0f766e;
 }
 
 @keyframes spin {

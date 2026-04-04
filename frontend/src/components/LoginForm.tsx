@@ -19,7 +19,13 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleAuthSuccess = (payload: { token: string; user: any }) => {
+  const waitForSpinner = () =>
+    new Promise((resolve) => {
+      window.setTimeout(resolve, 450);
+    });
+
+  const handleAuthSuccess = async (payload: { token: string; user: any }) => {
+    await waitForSpinner();
     localStorage.setItem("token", payload.token);
     localStorage.setItem("user", JSON.stringify(payload.user));
     window.dispatchEvent(new Event("auth-changed"));
@@ -41,7 +47,7 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
       const res = await axios.post(`${apiUrl}/api/auth/google`, {
         token: credentialResponse.credential,
       });
-      handleAuthSuccess(res.data);
+      await handleAuthSuccess(res.data);
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err)) {
@@ -69,7 +75,7 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
         email,
         password,
       });
-      handleAuthSuccess(res.data);
+      await handleAuthSuccess(res.data);
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err)) {
@@ -86,6 +92,13 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
 
   return (
     <div className="login-panel__stack">
+      {isBusy ? (
+        <div className="login-panel__status" role="status" aria-live="polite">
+          <span className="login-panel__spinner login-panel__spinner--dark" />
+          <span>{t("login.loading")}</span>
+        </div>
+      ) : null}
+
       <div className="login-panel__google">
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
@@ -139,7 +152,12 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
 
         <button className="login-panel__submit" type="submit" disabled={isBusy}>
           {isFormLoading
-            ? t("login.formLoading")
+            ? (
+                <>
+                  <span className="login-panel__spinner" />
+                  <span>{t("login.formLoading")}</span>
+                </>
+              )
             : mode === "login"
               ? t("login.formSubmit")
               : t("login.formRegister")}
