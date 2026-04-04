@@ -1,20 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0f172a"/>
       <stop offset="0.55" stop-color="#0f766e"/>
       <stop offset="1" stop-color="#f59e0b"/>
     </linearGradient>
-    <linearGradient id="candle" x1="22" y1="18" x2="42" y2="46" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fff7ed"/>
-      <stop offset="1" stop-color="#f8fafc"/>
+    <linearGradient id="line" x1="18" y1="18" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#fde68a"/>
     </linearGradient>
   </defs>
   <rect x="6" y="6" width="52" height="52" rx="18" fill="url(#bg)"/>
-  <path d="M21 42.5h22" stroke="#E2E8F0" stroke-linecap="round" stroke-width="2.5"/>
-  <path d="M25 18v28" stroke="#F8FAFC" stroke-linecap="round" stroke-width="2.5"/>
-  <rect x="21.5" y="23" width="7" height="13" rx="3.5" fill="#22c55e"/>
-  <path d="M39 16v30" stroke="#F8FAFC" stroke-linecap="round" stroke-width="2.5"/>
-  <rect x="35.5" y="21" width="7" height="17" rx="3.5" fill="#f97316"/>
-  <path d="M18 48c4-5.5 8.667-8.25 14-8.25S42 35.5 46 30" stroke="url(#candle)" stroke-linecap="round" stroke-width="3"/>
+  <path d="M18 44c4.5-6.5 9.5-9.75 15-9.75 3.75 0 7.333 1.083 10.75 3.25S50.75 40 54 34.5" stroke="url(#line)" stroke-linecap="round" stroke-width="2.8"/>
+  <path d="M18 22h27" stroke="#E2E8F0" stroke-linecap="round" stroke-width="2.8"/>
+  <path d="M18 30h19" stroke="#E2E8F0" stroke-linecap="round" stroke-opacity=".78" stroke-width="2.3"/>
+  <path d="M18 37h12" stroke="#E2E8F0" stroke-linecap="round" stroke-opacity=".56" stroke-width="2.3"/>
+  <path d="M40 18v28" stroke="#F8FAFC" stroke-linecap="round" stroke-width="2.4"/>
+  <circle cx="40" cy="27" r="4.5" fill="#22C55E"/>
+  <path d="M23 16h10l-3.2 5.6h4.3L25 31l3.1-6.4h-5.4z" fill="#F8FAFC"/>
 </svg>
