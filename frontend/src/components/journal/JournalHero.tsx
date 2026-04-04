@@ -10,12 +10,12 @@ const TIP_KEYS = [
   "journal.tipFive",
 ] as const;
 
-function getCurrentClock(locale: string) {
+function getCurrentClock(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale === "hi" ? "hi-IN" : "en-IN", {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
-  }).format(new Date());
+  }).format(date);
 }
 
 function getGreetingKey(hour: number) {
@@ -49,6 +49,7 @@ interface AnalogClockProps {
   hours: number;
   minutes: number;
   seconds: number;
+  milliseconds: number;
 }
 
 function AnalogClock({
@@ -56,7 +57,12 @@ function AnalogClock({
   hours,
   minutes,
   seconds,
+  milliseconds,
 }: AnalogClockProps) {
+  const smoothSeconds = seconds + milliseconds / 1000;
+  const smoothMinutes = minutes + smoothSeconds / 60;
+  const smoothHours = hours + smoothMinutes / 60;
+
   return (
     <div className="journal-page-hero__clock-analog" aria-label={currentTime}>
       <span className="journal-page-hero__clock-number journal-page-hero__clock-number--12">
@@ -78,18 +84,18 @@ function AnalogClock({
       <span
         className="journal-page-hero__clock-hand journal-page-hero__clock-hand--hour"
         style={{
-          transform: `translateX(-50%) rotate(${hours * 30 + minutes * 0.5}deg)`,
+          transform: `translateX(-50%) rotate(${smoothHours * 30}deg)`,
         }}
       />
       <span
         className="journal-page-hero__clock-hand journal-page-hero__clock-hand--minute"
         style={{
-          transform: `translateX(-50%) rotate(${minutes * 6 + seconds * 0.1}deg)`,
+          transform: `translateX(-50%) rotate(${smoothMinutes * 6}deg)`,
         }}
       />
       <span
         className="journal-page-hero__clock-hand journal-page-hero__clock-hand--second"
-        style={{ transform: `translateX(-50%) rotate(${seconds * 6}deg)` }}
+        style={{ transform: `translateX(-50%) rotate(${smoothSeconds * 6}deg)` }}
       />
       <span className="journal-page-hero__clock-center" />
     </div>
@@ -110,15 +116,15 @@ export default function JournalHero() {
       : "digital";
   });
   const [showDailyTip, setShowDailyTip] = useState(true);
-  const [currentTime, setCurrentTime] = useState(() => getCurrentClock(locale));
+  const [currentDate, setCurrentDate] = useState(() => new Date());
 
   useEffect(() => {
-    const updateClock = () => setCurrentTime(getCurrentClock(locale));
+    const updateClock = () => setCurrentDate(new Date());
 
     updateClock();
-    const timer = window.setInterval(updateClock, 1000);
+    const timer = window.setInterval(updateClock, 50);
     return () => window.clearInterval(timer);
-  }, [locale]);
+  }, []);
 
   useEffect(() => {
     setShowDailyTip(true);
@@ -134,7 +140,8 @@ export default function JournalHero() {
     localStorage.setItem(clockPreferenceKey, clockMode);
   }, [clockMode, clockPreferenceKey]);
 
-  const now = new Date();
+  const now = currentDate;
+  const currentTime = getCurrentClock(currentDate, locale);
   const greetingName =
     storedUser?.name?.split(" ")[0] || storedUser?.email?.split("@")[0] || "";
   const dailyTipKey = useMemo(() => {
@@ -186,6 +193,7 @@ export default function JournalHero() {
                 hours={now.getHours() % 12}
                 minutes={now.getMinutes()}
                 seconds={now.getSeconds()}
+                milliseconds={now.getMilliseconds()}
               />
             )}
           </div>
