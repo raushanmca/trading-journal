@@ -49,14 +49,10 @@ export function AppShell({
           <div className="app-shell__brand">
             <Link to={isSignedIn ? "/" : "/login"} className="app-shell__logo">
               <img
-                src={`${import.meta.env.BASE_URL}favicon.svg`}
-                alt="Trading Journal logo"
+                src={`${import.meta.env.BASE_URL}brand-logo.svg`}
+                alt="TRA Journal by Raushan"
               />
             </Link>
-            <div>
-              <p className="app-shell__title">{t("app.title")}</p>
-              <p className="app-shell__subtitle">{t("app.subtitle")}</p>
-            </div>
           </div>
 
           {/* Admin notification for OWNER_EMAIL, below header */}

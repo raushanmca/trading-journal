@@ -98,21 +98,20 @@
 .app-shell__brand {
   display: flex;
   align-items: center;
-  gap: 14px;
   flex-shrink: 0;
-  max-width: 260px;
+  max-width: 360px;
   min-width: 0;
   overflow: hidden;
 }
 
 .app-shell__logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: 240px;
+  height: 64px;
+  border-radius: 20px;
   display: grid;
   place-items: center;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.2);
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .app-shell__logo img {
@@ -121,27 +120,6 @@
   display: block;
 }
 
-.app-shell__title {
-  margin: 0;
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #0f172a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.app-shell__subtitle {
-  margin: 4px 0 0;
-  color: #526072;
-  font-size: 0.95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
 
 .app-shell__nav {
   display: flex;
