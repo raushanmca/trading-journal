@@ -8,6 +8,63 @@ body {
   padding: 34px 24px 72px;
 }
 
+.journal-page-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(14, 116, 144, 0.14), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.14), transparent 34%),
+    rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.07);
+}
+
+.journal-page-hero__eyebrow {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f766e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.journal-page-hero__content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.journal-page-hero h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.1;
+}
+
+.journal-page-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f766e;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .journal-form-container {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -104,9 +161,166 @@ input[type="date"] {
   background-color: #ffffff;
 }
 
+.form-input--date {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  padding-right: 48px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color-scheme: light;
+  accent-color: #0f766e;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+    0 10px 20px rgba(15, 23, 42, 0.04);
+}
+
+.form-input--date:hover {
+  border-color: rgba(15, 118, 110, 0.32);
+  background: #ffffff;
+}
+
 input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.92;
   filter: invert(0.34);
   cursor: pointer;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(15, 118, 110, 0.08);
+}
+
+.journal-date-picker {
+  position: relative;
+}
+
+.journal-date-picker__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+
+.journal-date-picker__trigger--open {
+  border-color: #0f766e;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
+}
+
+.journal-date-picker__value {
+  color: #0f172a;
+}
+
+.journal-date-picker__value--placeholder {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.journal-date-picker__icon {
+  font-size: 1rem;
+}
+
+.journal-date-picker__popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 15;
+  width: min(320px, calc(100vw - 48px));
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 28px 48px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(12px);
+}
+
+.journal-date-picker__header,
+.journal-date-picker__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.journal-date-picker__header strong {
+  color: #0f172a;
+  font-size: 0.96rem;
+}
+
+.journal-date-picker__nav,
+.journal-date-picker__footer-action {
+  min-height: 36px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f766e;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.journal-date-picker__nav {
+  min-width: 36px;
+}
+
+.journal-date-picker__footer {
+  margin-top: 12px;
+}
+
+.journal-date-picker__footer-action {
+  padding: 0 12px;
+}
+
+.journal-date-picker__weekdays,
+.journal-date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.journal-date-picker__weekdays {
+  margin: 14px 0 10px;
+}
+
+.journal-date-picker__weekdays span {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.journal-date-picker__day {
+  min-height: 36px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.journal-date-picker__day:hover {
+  background: rgba(15, 118, 110, 0.08);
+}
+
+.journal-date-picker__day--muted {
+  color: #94a3b8;
+}
+
+.journal-date-picker__day--today {
+  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.24);
+}
+
+.journal-date-picker__day--selected {
+  background: linear-gradient(135deg, #0f172a 0%, #0f766e 100%);
+  color: #fffef6;
+  box-shadow: 0 12px 20px rgba(15, 118, 110, 0.2);
+}
+
+.journal-date-picker__day--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .submit-btn {
@@ -491,6 +705,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 820px) {
   .page-container {
     padding: 24px 18px 48px;
+  }
+
+  .journal-page-hero {
+    padding: 18px;
+  }
+
+  .journal-page-hero__content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .journal-form-container {

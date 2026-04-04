@@ -42,6 +42,21 @@ export function AppShell({
     }
   }, [isSignedIn]);
 
+  useEffect(() => {
+    if (!isAuthModalOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsAuthModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAuthModalOpen]);
+
   return (
     <div className="app-shell">
       <header className="app-shell__header">
@@ -54,9 +69,6 @@ export function AppShell({
               />
             </Link>
           </div>
-
-          {/* Admin notification for OWNER_EMAIL, below header */}
-          {user?.email === "rshan45@gmail.com" && <AdminNotifications />}
 
           {isSignedIn ? (
             <nav className="app-shell__nav" aria-label="Primary">
@@ -173,6 +185,7 @@ export function AppShell({
           </div>
         </div>
       </header>
+      {user?.email === "rshan45@gmail.com" ? <AdminNotifications /> : null}
 
       {children}
       {isAuthModalOpen ? (

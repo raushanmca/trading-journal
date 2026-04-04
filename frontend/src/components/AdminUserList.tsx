@@ -79,10 +79,10 @@ export function AdminUserList() {
       <section className="admin-panel admin-panel--hero">
         <div>
           <p className="admin-panel__eyebrow">{t("nav.adminUsers")}</p>
-          <h2 className="admin-panel__title">{t("admin.headingUsers")}</h2>
-          <p className="admin-panel__description">
-            {t("admin.subtitleUsers")}
-          </p>
+          <div className="admin-panel__headline">
+            <h2 className="admin-panel__title">{t("admin.headingUsers")}</h2>
+            <span className="admin-panel__chip">{t("admin.heroChip")}</span>
+          </div>
         </div>
         <div className="admin-summary-grid">
           <article className="admin-summary-card">

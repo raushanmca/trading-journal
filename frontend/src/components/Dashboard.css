@@ -4,10 +4,21 @@
   border-radius: 24px;
   padding: 22px;
   box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .card h3 {
   margin: 0 0 14px;
   font-size: 1rem;
   color: #0f172a;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 118, 110, 0.16);
+  box-shadow: 0 28px 56px rgba(15, 23, 42, 0.1);
 }

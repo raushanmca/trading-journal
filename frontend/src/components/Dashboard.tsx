@@ -479,10 +479,12 @@ export default function Dashboard() {
         </div>
         <div className="dashboard-hero__meta">
           {userName ? (
-            <strong>{t("dashboard.loggedInAs", { name: userName })}</strong>
+            <strong className="dashboard-hero__chip">
+              {t("dashboard.loggedInAs", { name: userName })}
+            </strong>
           ) : null}
           {isOwner ? (
-            <span>
+            <span className="dashboard-hero__chip dashboard-hero__chip--accent">
               {t("nav.ownerAccess", {
                 email: userEmail || t("dashboard.yourAccount"),
               })}
@@ -500,7 +502,7 @@ export default function Dashboard() {
       ) : trialDaysRemaining !== null ? (
         <div className="dashboard-banner dashboard-banner--trial">
           <div className="dashboard-banner__label">{t("dashboard.trialAccess")}</div>
-          <div style={{ color: "#0f172a", fontSize: "1.2rem", fontWeight: 800 }}>
+          <div className="dashboard-banner__value">
             {trialDaysRemaining === 0
               ? t("dashboard.trialEnded")
               : t("dashboard.trialRemaining", {
@@ -508,12 +510,12 @@ export default function Dashboard() {
                   suffix: trialDaysRemaining === 1 ? "" : "s",
                 })}
           </div>
-          <div style={{ color: "#475569", marginTop: "6px", fontSize: "14px" }}>
+          <div className="dashboard-banner__meta">
             {t("dashboard.trialEndDate", {
               date: trialEndsAt ? formatLongDate(trialEndsAt) : t("dashboard.notAvailable"),
             })}
           </div>
-          <div style={{ marginTop: "14px" }}>
+          <div className="dashboard-banner__actions">
             <RenewAccessActions userEmail={userEmail} />
           </div>
         </div>
@@ -524,6 +526,9 @@ export default function Dashboard() {
         <div className="dashboard-filters__copy">
           <div className="dashboard-panel__title">{t("dashboard.reportRange")}</div>
           <p className="dashboard-panel__subtitle">{t("dashboard.reportRangeSubtitle")}</p>
+          <span className="dashboard-range-pill">
+            {buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime"))}
+          </span>
         </div>
         <label className="dashboard-filters__field">
           <span>{t("dashboard.fromDate")}</span>
@@ -687,7 +692,7 @@ export default function Dashboard() {
           {filteredTrades.length === 0 ? (
             <div className="dashboard-empty">{t("dashboard.noTradesRecorded")}</div>
           ) : (
-            <div style={{ maxHeight: "500px", overflowY: "auto" }}>
+            <div className="dashboard-trades__list">
               {filteredTrades
                 .slice(0, 8)
                 .map((trade, index) => (
@@ -702,14 +707,14 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div style={{ textAlign: "right" }}>
+                    <div className="dashboard-trade__meta">
                       <div
                         className="dashboard-trade__pnl"
-                        style={{ color: trade.pnl >= 0 ? "#047857" : "#b91c1c" }}
+                        data-positive={trade.pnl >= 0}
                       >
                         ₹{trade.pnl}
                       </div>
-                      <div style={{ marginTop: "4px" }}>
+                      <div className="dashboard-trade__rating">
                         {renderStars(trade.rating)}
                       </div>
                     </div>

@@ -4,12 +4,21 @@ import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
+import JournalDatePicker from "./JournalDatePicker";
 const BASE_URL = getApiBaseUrl();
+
+function getTodayInputDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = `${now.getMonth() + 1}`.padStart(2, "0");
+  const day = `${now.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export default function JournalCard() {
   const { t } = useLocalization();
   const [form, setForm] = useState({
-    date: "",
+    date: getTodayInputDate(),
     instrument: "",
     pnl: "",
     mistakes: "", // We'll keep this field name for now
@@ -104,7 +113,7 @@ export default function JournalCard() {
     alert(t("journal.alert.saved"));
 
     setForm({
-      date: "",
+      date: getTodayInputDate(),
       instrument: "",
       pnl: "",
       mistakes: "",
@@ -120,12 +129,9 @@ export default function JournalCard() {
     <form className="card" onSubmit={submit}>
       <h3>{t("journal.cardTitle")}</h3>
 
-      <input
-        type="date"
-        name="date"
-        onChange={handleChange}
-        className="form-input"
-        required
+      <JournalDatePicker
+        value={form.date}
+        onChange={(value) => setForm((prev) => ({ ...prev, date: value }))}
       />
 
       <div

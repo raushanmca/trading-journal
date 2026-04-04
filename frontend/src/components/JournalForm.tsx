@@ -52,6 +52,7 @@ function DraggableCard({ id, index, moveCard, children }: any) {
 }
 
 export default function JournalForm() {
+  const { t } = useLocalization();
   const [layout, setLayout] = useState(() => buildLayout());
 
   useEffect(() => {
@@ -110,6 +111,17 @@ export default function JournalForm() {
 
   return (
     <div className="page-container">
+      <section className="journal-page-hero">
+        <div>
+          <div className="journal-page-hero__eyebrow">
+            {t("journal.pageEyebrow")}
+          </div>
+          <div className="journal-page-hero__content">
+            <h1>{t("journal.pageTitle")}</h1>
+          </div>
+        </div>
+        <div className="journal-page-hero__chip">{t("journal.pageChip")}</div>
+      </section>
       <div className="journal-form-container">
         {layout.map((item, index) => (
           <DraggableCard key={item.id} index={index} moveCard={moveCard}>
