@@ -13,6 +13,7 @@ export default function JournalCard() {
     instrument: "",
     pnl: "",
     mistakes: "", // We'll keep this field name for now
+    journalComment: "",
     rating: 0,
     tradeResult: "profit" as "profit" | "loss",
   });
@@ -87,6 +88,7 @@ export default function JournalCard() {
         pnl: form.tradeResult === "loss" ? -normalizedPnl : normalizedPnl,
         rating: form.rating,
         tradeResult: form.tradeResult,
+        journalComment: form.journalComment.trim(),
         mistakes: form.mistakes
           ? form.mistakes
               .split(",")
@@ -106,6 +108,7 @@ export default function JournalCard() {
       instrument: "",
       pnl: "",
       mistakes: "",
+      journalComment: "",
       rating: 0,
       tradeResult: "profit",
     });
@@ -202,6 +205,14 @@ export default function JournalCard() {
           ? form.mistakes
           : t("journal.lessonDrop")}
       </div>
+
+      <textarea
+        name="journalComment"
+        value={form.journalComment}
+        onChange={handleChange}
+        className="form-textarea"
+        placeholder={t("journal.commentPlaceholder")}
+      />
 
       <button type="submit" className="submit-btn">
         {t("journal.saveEntry")}

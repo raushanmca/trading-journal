@@ -28,6 +28,10 @@ const JournalSchema = new mongoose.Schema(
     pnl: Number,
 
     mistakes: [String],
+    journalComment: {
+      type: String,
+      default: "",
+    },
     whatWentRight: String,
 
     emotionalState: {
