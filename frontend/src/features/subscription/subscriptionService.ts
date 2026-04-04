@@ -14,6 +14,15 @@ interface RenewSubscriptionResponse {
   };
 }
 
+interface PaymentApprovalResponse {
+  message: string;
+  paymentRequest?: {
+    _id: string;
+    paymentReference: string;
+    status: string;
+  };
+}
+
 export async function renewSubscription(paymentReference = "") {
   const authHeaders = getAuthHeaders();
 
@@ -27,6 +36,20 @@ export async function renewSubscription(paymentReference = "") {
 
   localStorage.setItem("user", JSON.stringify(response.data.user));
   window.dispatchEvent(new Event("auth-changed"));
+
+  return response.data;
+}
+
+export async function requestPaymentApproval(paymentReference = "") {
+  const authHeaders = getAuthHeaders();
+
+  const response = await axios.post<PaymentApprovalResponse>(
+    `${BASE_URL}/api/payment-request/request-approval`,
+    { paymentReference },
+    {
+      headers: authHeaders,
+    },
+  );
 
   return response.data;
 }

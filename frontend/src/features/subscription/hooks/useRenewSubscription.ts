@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { renewSubscription } from "../subscriptionService";
+import { requestPaymentApproval } from "../subscriptionService";
 import {
   buildRenewalUpiUrl,
   getMonthlyRenewalAmount,
@@ -20,6 +20,7 @@ export function useRenewSubscription({
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const amount = getMonthlyRenewalAmount();
   const upiUrl = useMemo(() => buildRenewalUpiUrl(userEmail), [userEmail]);
@@ -34,17 +35,29 @@ export function useRenewSubscription({
     window.location.assign(upiUrl);
     setAwaitingConfirmation(true);
     setErrorMessage("");
+    setSuccessMessage("");
   };
 
   const confirmRenewal = async () => {
     try {
       setIsSubmitting(true);
       setErrorMessage("");
-      await renewSubscription("upi-manual-confirmation");
+      const response = await requestPaymentApproval("upi-manual-confirmation");
+      setSuccessMessage(response.message || t("renewal.requestSubmitted"));
+      setAwaitingConfirmation(false);
       onRenewed?.();
     } catch (error) {
       console.error("Renewal failed", error);
-      setErrorMessage(t("renewal.failed"));
+      if (
+        typeof error === "object" &&
+        error &&
+        "response" in error &&
+        (error as any).response?.data?.message
+      ) {
+        setErrorMessage((error as any).response.data.message);
+      } else {
+        setErrorMessage(t("renewal.failed"));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -57,6 +70,7 @@ export function useRenewSubscription({
     errorMessage,
     isSubmitting,
     openUpi,
+    successMessage,
     upiId,
     upiUrl,
   };

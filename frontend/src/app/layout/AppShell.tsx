@@ -65,7 +65,7 @@ export function AppShell({
             <Link to={isSignedIn ? "/" : "/login"} className="app-shell__logo">
               <img
                 src={`${import.meta.env.BASE_URL}brand-logo-header.svg`}
-                alt="TRA Journal by Raushan"
+                alt="TRA Journal by Aarohi"
               />
             </Link>
           </div>
@@ -121,20 +121,27 @@ export function AppShell({
 
             {isSignedIn ? (
               <div ref={accountMenuRef} className="app-shell__user">
-                <button
-                  onClick={onSignInMenuToggle}
-                  className="app-shell__user-button"
-                >
-                  <div className="app-shell__avatar">{userInitials || "A"}</div>
-                  <div className="app-shell__user-meta">
-                    <span className="app-shell__user-name">
-                      {user?.name || t("nav.myAccount")}
+                <div className="app-shell__user-head">
+                  {user?.email === "rshan45@gmail.com" ? (
+                    <AdminNotifications />
+                  ) : null}
+                  <button
+                    onClick={onSignInMenuToggle}
+                    className="app-shell__user-button"
+                  >
+                    <div className="app-shell__avatar">
+                      {userInitials || "A"}
+                    </div>
+                    <div className="app-shell__user-meta">
+                      <span className="app-shell__user-name">
+                        {user?.name || t("nav.myAccount")}
+                      </span>
+                    </div>
+                    <span className="app-shell__caret">
+                      {isAccountMenuOpen ? "▲" : "▼"}
                     </span>
-                  </div>
-                  <span className="app-shell__caret">
-                    {isAccountMenuOpen ? "▲" : "▼"}
-                  </span>
-                </button>
+                  </button>
+                </div>
 
                 {isAccountMenuOpen ? (
                   <div className="app-shell__menu">
@@ -185,8 +192,6 @@ export function AppShell({
           </div>
         </div>
       </header>
-      {user?.email === "rshan45@gmail.com" ? <AdminNotifications /> : null}
-
       {children}
       {isAuthModalOpen ? (
         <div className="auth-modal">

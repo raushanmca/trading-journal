@@ -21,6 +21,7 @@ export function RenewAccessActions({
     errorMessage,
     isSubmitting,
     openUpi,
+    successMessage,
     upiId,
     upiUrl,
   } = useRenewSubscription({
@@ -51,7 +52,7 @@ export function RenewAccessActions({
               onClick={confirmRenewal}
               disabled={isSubmitting}
             >
-              {isSubmitting ? t("renewal.processing") : t("renewal.confirm")}
+              {isSubmitting ? t("renewal.processing") : t("renewal.alreadyPaid")}
             </button>
           </div>
         </>
@@ -60,6 +61,10 @@ export function RenewAccessActions({
           {t("renewal.hint", { amount })}
         </span>
       )}
+
+      {successMessage ? (
+        <div className="renew-actions__success">{successMessage}</div>
+      ) : null}
 
       {errorMessage ? (
         <div className="renew-actions__error">{errorMessage}</div>
