@@ -13,6 +13,18 @@ router.post("/request-approval", requireAuth, async (req, res) => {
     const user = await User.findOne({ authProviderId: req.user.userId });
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    const existingPendingRequest = await PaymentRequest.findOne({
+      userId: user._id,
+      status: "pending",
+    });
+
+    if (existingPendingRequest) {
+      return res.status(409).json({
+        message: "Your payment approval request is already pending",
+        paymentRequest: existingPendingRequest,
+      });
+    }
+
     const paymentRequest = new PaymentRequest({
       userId: user._id,
       email: user.email,

@@ -45,6 +45,14 @@ async function findOrCreateUser({
   return user;
 }
 
+async function recordSuccessfulLogin(user) {
+  user.loginCount = (user.loginCount || 0) + 1;
+  user.lastLoginAt = new Date();
+  await user.save();
+  return user;
+}
+
 module.exports = {
   findOrCreateUser,
+  recordSuccessfulLogin,
 };

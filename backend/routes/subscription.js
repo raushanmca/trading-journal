@@ -22,6 +22,7 @@ router.post("/renew", requireAuth, async (req, res) => {
         picture: account.picture,
         provider: account.provider,
         isOwner: trialStatus.isOwner,
+        renewalCount: account.renewalCount || 0,
         trialStartedAt: trialStatus.trialStartedAt,
         trialEndsAt: trialStatus.trialEndsAt,
         isTrialExpired: trialStatus.isTrialExpired,

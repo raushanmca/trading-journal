@@ -4,13 +4,22 @@ const axios = require("axios");
 const bcrypt = require("bcryptjs");
 const router = express.Router();
 const User = require("../models/User");
-const { OWNER_EMAIL, addDays, isOwnerEmail, normalizeEmail } = require("../utils/trial");
+const {
+  OWNER_EMAIL,
+  addDays,
+  isOwnerEmail,
+  normalizeEmail,
+} = require("../utils/trial");
 const { getFrontendUrl } = require("../services/auth/frontendUrlService");
-const { findOrCreateUser } = require("../services/auth/userAccountService");
+const {
+  findOrCreateUser,
+  recordSuccessfulLogin,
+} = require("../services/auth/userAccountService");
 const {
   buildAuthenticatedUser,
   buildAuthToken,
 } = require("../services/auth/authResponseService");
+const requireAuth = require("../middleware/auth");
 
 // Admin: Get all users and their subscription status
 router.get("/all-users", async (req, res) => {
@@ -31,11 +40,63 @@ router.get("/all-users", async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     const users = await User.find(
       {},
-      "email name trialEndsAt renewalCount isOwner",
+      "email name trialEndsAt renewalCount isOwner loginCount lastLoginAt",
     );
     return res.json({ users });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+router.delete("/user/:userId", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.replace("Bearer ", "");
+    let email = "";
+
+    if (token) {
+      try {
+        const payload = JSON.parse(
+          Buffer.from(token.split(".")[1], "base64").toString(),
+        );
+        email = payload.email || "";
+      } catch {}
+    }
+
+    if (email !== OWNER_EMAIL) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const { userId } = req.params;
+    const account = await User.findById(userId);
+
+    if (!account) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (account.email === OWNER_EMAIL || account.isOwner) {
+      return res
+        .status(400)
+        .json({ message: "Owner account cannot be deleted" });
+    }
+
+    const Journal = require("../models/Journal");
+    const PaymentRequest = require("../models/PaymentRequest");
+
+    await Promise.all([
+      Journal.deleteMany({
+        $or: [{ userId: account.authProviderId }, { userEmail: account.email }],
+      }),
+      PaymentRequest.deleteMany({
+        $or: [{ userId: account._id }, { email: account.email }],
+      }),
+      User.deleteOne({ _id: account._id }),
+    ]);
+
+    return res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Failed to delete user:", error.message);
+    return res.status(500).json({ message: "Failed to delete user" });
   }
 });
 
@@ -82,8 +143,9 @@ router.post("/register", async (req, res) => {
     });
 
     await account.save();
-    const { user } = buildAuthenticatedUser(account);
-    const token = buildAuthToken(account);
+    const loggedInAccount = await recordSuccessfulLogin(account);
+    const { user } = buildAuthenticatedUser(loggedInAccount);
+    const token = buildAuthToken(loggedInAccount);
     return res.json({ token, user });
   } catch (err) {
     console.error("Registration failed:", err.message);
@@ -113,8 +175,9 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const { user } = buildAuthenticatedUser(account);
-    const token = buildAuthToken(account);
+    const loggedInAccount = await recordSuccessfulLogin(account);
+    const { user } = buildAuthenticatedUser(loggedInAccount);
+    const token = buildAuthToken(loggedInAccount);
     return res.json({ token, user });
   } catch (err) {
     console.error("Login failed:", err.message);
@@ -152,8 +215,9 @@ router.post("/google", async (req, res) => {
       picture: payload.picture,
       provider: "google",
     });
-    const { user } = buildAuthenticatedUser(account);
-    const authToken = buildAuthToken(account);
+    const loggedInAccount = await recordSuccessfulLogin(account);
+    const { user } = buildAuthenticatedUser(loggedInAccount);
+    const authToken = buildAuthToken(loggedInAccount);
 
     res.json({ token: authToken, user });
   } catch (err) {
@@ -161,6 +225,22 @@ router.post("/google", async (req, res) => {
     res.status(401).json({
       message: err.message || "Google authentication failed",
     });
+  }
+});
+
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const account = await User.findOne({ authProviderId: req.user.userId });
+
+    if (!account) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { user } = buildAuthenticatedUser(account);
+    return res.json({ user });
+  } catch (error) {
+    console.error("Failed to fetch current user:", error.message);
+    return res.status(500).json({ message: "Failed to fetch user" });
   }
 });
 
@@ -202,16 +282,17 @@ router.get("/github/callback", async (req, res) => {
       picture: githubUser.avatar_url,
       provider: "github",
     });
-    const { trialStatus } = buildAuthenticatedUser(account);
-    const token = buildAuthToken(account);
+    const loggedInAccount = await recordSuccessfulLogin(account);
+    const { trialStatus } = buildAuthenticatedUser(loggedInAccount);
+    const token = buildAuthToken(loggedInAccount);
 
     const frontendUrl = getFrontendUrl();
     const userPayload = encodeURIComponent(
       JSON.stringify({
-        email: account.email,
-        name: account.name,
-        picture: account.picture,
-        provider: account.provider,
+        email: loggedInAccount.email,
+        name: loggedInAccount.name,
+        picture: loggedInAccount.picture,
+        provider: loggedInAccount.provider,
         isOwner: trialStatus.isOwner,
         trialStartedAt: trialStatus.trialStartedAt,
         trialEndsAt: trialStatus.trialEndsAt,

@@ -11,6 +11,10 @@ const JournalSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    encryptedEntry: {
+      type: String,
+      default: "",
+    },
     date: String,
     marketBias: String,
     instrument: String,
