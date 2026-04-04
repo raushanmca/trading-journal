@@ -9,14 +9,13 @@ import { getUserStorageKey } from "../utils/auth";
 import "./JournalForm.css";
 import { useLocalization } from "../localization/LocalizationProvider";
 
-const DEFAULT_LAYOUT_IDS = ["instruments", "journal", "lessons", "chatbot"];
+const DEFAULT_LAYOUT_IDS = ["instruments", "journal", "lessons"];
 
 function buildLayout() {
   return [
     { id: "instruments", component: <InstrumentsSidebar /> },
     { id: "journal", component: <JournalCard /> },
     { id: "lessons", component: <LessonsSidebar /> },
-    { id: "chatbot", component: <AIJournalChatbot /> },
   ];
 }
 
@@ -118,6 +117,7 @@ export default function JournalForm() {
           </DraggableCard>
         ))}
       </div>
+      <AIJournalChatbot />
     </div>
   );
 }

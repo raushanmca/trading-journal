@@ -88,6 +88,8 @@ export function AdminUserList() {
             <th>Email</th>
             <th>{t("nav.journal")}</th>
             <th>{t("dashboard.trialEndDate")}</th>
+            <th>Login Count</th>
+            <th>Last Login</th>
             <th>Renewal Count</th>
             <th>Is Owner</th>
             <th>Pending Approval</th>
@@ -103,6 +105,12 @@ export function AdminUserList() {
                 <td>
                   {u.trialEndsAt
                     ? new Date(u.trialEndsAt).toLocaleDateString()
+                    : "-"}
+                </td>
+                <td>{u.loginCount || 0}</td>
+                <td>
+                  {u.lastLoginAt
+                    ? new Date(u.lastLoginAt).toLocaleString()
                     : "-"}
                 </td>
                 <td>{u.renewalCount || 0}</td>

@@ -47,6 +47,15 @@ interface Trade {
   pnl: number;
   rating: number;
   mistakes?: string[];
+  journalComment?: string;
+}
+
+interface DashboardAnalysis {
+  summary: string;
+  focusArea: string;
+  strengths: string[];
+  risks: string[];
+  actions: string[];
 }
 
 function formatInputDate(date: Date) {
@@ -67,6 +76,22 @@ function getCurrentMonthRange() {
   };
 }
 
+function buildDateRangeLabel(from: string, to: string, fallback: string) {
+  if (!from && !to) {
+    return fallback;
+  }
+
+  if (from && to) {
+    return `${from} to ${to}`;
+  }
+
+  if (from) {
+    return `From ${from}`;
+  }
+
+  return `Up to ${to}`;
+}
+
 export default function Dashboard() {
   const { t } = useLocalization();
   const { formatCompactDate, formatLongDate } = useAppDateFormatter();
@@ -83,6 +108,8 @@ export default function Dashboard() {
   );
   const [dateFrom, setDateFrom] = useState(currentMonthRange.from);
   const [dateTo, setDateTo] = useState(currentMonthRange.to);
+  const [requestedAnalysis, setRequestedAnalysis] =
+    useState<DashboardAnalysis | null>(null);
 
   useEffect(() => {
     const syncStoredUser = () => {
@@ -245,6 +272,176 @@ export default function Dashboard() {
     ));
   };
 
+  const mistakeFrequency = new Map<string, number>();
+  filteredTrades.forEach((trade) => {
+    (trade.mistakes || []).forEach((mistake) => {
+      const normalizedMistake = mistake.trim();
+      if (!normalizedMistake) {
+        return;
+      }
+      mistakeFrequency.set(
+        normalizedMistake,
+        (mistakeFrequency.get(normalizedMistake) || 0) + 1,
+      );
+    });
+  });
+
+  const sortedMistakes = [...mistakeFrequency.entries()].sort(
+    (left, right) => right[1] - left[1],
+  );
+
+  const instrumentFrequency = new Map<string, number>();
+  filteredTrades.forEach((trade) => {
+    const instrument = trade.instrument || t("dashboard.notAvailable");
+    instrumentFrequency.set(
+      instrument,
+      (instrumentFrequency.get(instrument) || 0) + 1,
+    );
+  });
+
+  const topInstrument =
+    [...instrumentFrequency.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ||
+    t("dashboard.notAvailable");
+
+  const latestTrades = filteredTrades.slice(0, 3);
+  const latestMomentum = latestTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+  const averageWin =
+    filteredTrades.filter((trade) => trade.pnl > 0).reduce((sum, trade) => sum + trade.pnl, 0) /
+      Math.max(
+        1,
+        filteredTrades.filter((trade) => trade.pnl > 0).length,
+      ) || 0;
+  const averageLoss =
+    filteredTrades.filter((trade) => trade.pnl < 0).reduce((sum, trade) => sum + trade.pnl, 0) /
+      Math.max(
+        1,
+        filteredTrades.filter((trade) => trade.pnl < 0).length,
+      ) || 0;
+
+  const analysis: DashboardAnalysis =
+    filteredTrades.length === 0
+      ? {
+          summary: t("dashboard.analysisEmptySummary"),
+          focusArea: t("dashboard.analysisEmptyFocus"),
+          strengths: [],
+          risks: [],
+          actions: [t("dashboard.analysisEmptyAction")],
+        }
+      : {
+          summary:
+            totalPnL >= 0
+              ? t("dashboard.analysisSummaryPositive", {
+                  count: totalTrades,
+                  pnl: totalPnL.toLocaleString(),
+                })
+              : t("dashboard.analysisSummaryNegative", {
+                  count: totalTrades,
+                  pnl: Math.abs(totalPnL).toLocaleString(),
+                }),
+          focusArea:
+            latestMomentum >= 0
+              ? t("dashboard.analysisFocusPositive", {
+                  instrument: topInstrument,
+                })
+              : t("dashboard.analysisFocusNegative", {
+                  instrument: topInstrument,
+                }),
+          strengths: [
+            t("dashboard.analysisStrengthWinRate", { winRate }),
+            t("dashboard.analysisStrengthRating", { rating: avgRating }),
+            t("dashboard.analysisStrengthInstrument", { instrument: topInstrument }),
+          ],
+          risks: [
+            sortedMistakes[0]
+              ? t("dashboard.analysisRiskMistake", {
+                  mistake: sortedMistakes[0][0],
+                })
+              : t("dashboard.analysisRiskNone"),
+            averageLoss < 0
+              ? t("dashboard.analysisRiskLoss", {
+                  loss: Math.abs(Math.round(averageLoss)).toLocaleString(),
+                })
+              : t("dashboard.analysisRiskLowSample"),
+            latestTrades.length > 0 && latestMomentum < 0
+              ? t("dashboard.analysisRiskMomentum", {
+                  pnl: Math.abs(latestMomentum).toLocaleString(),
+                })
+              : t("dashboard.analysisRiskStable"),
+          ],
+          actions: [
+            sortedMistakes[0]
+              ? t("dashboard.analysisActionMistake", {
+                  mistake: sortedMistakes[0][0],
+                })
+              : t("dashboard.analysisActionJournal"),
+            averageWin > 0 && averageLoss < 0
+              ? t("dashboard.analysisActionRiskReward", {
+                  win: Math.round(averageWin).toLocaleString(),
+                  loss: Math.abs(Math.round(averageLoss)).toLocaleString(),
+                })
+              : t("dashboard.analysisActionConsistency"),
+            t("dashboard.analysisActionRange", {
+              range: buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime")),
+            }),
+          ],
+        };
+
+  useEffect(() => {
+    setRequestedAnalysis(null);
+  }, [dateFrom, dateTo, trades]);
+
+  const exportAnalysisPdf = () => {
+    if (!requestedAnalysis) {
+      return;
+    }
+
+    const reportWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+
+    if (!reportWindow) {
+      return;
+    }
+
+    const reportTitle = t("dashboard.analysisTitle");
+    const reportRange = buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime"));
+    const reportHtml = `
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <title>${reportTitle}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 32px; color: #0f172a; }
+            h1 { margin-bottom: 8px; }
+            h2 { margin: 24px 0 10px; font-size: 18px; }
+            p, li { line-height: 1.6; font-size: 14px; }
+            .meta { color: #475569; margin-bottom: 18px; }
+          </style>
+        </head>
+        <body>
+          <h1>${reportTitle}</h1>
+          <p class="meta">${reportRange}</p>
+          <p>${requestedAnalysis.summary}</p>
+          <p>${requestedAnalysis.focusArea}</p>
+          <h2>${t("dashboard.analysisStrengths")}</h2>
+          <ul>${requestedAnalysis.strengths.map((item) => `<li>${item}</li>`).join("")}</ul>
+          <h2>${t("dashboard.analysisRisks")}</h2>
+          <ul>${requestedAnalysis.risks.map((item) => `<li>${item}</li>`).join("")}</ul>
+          <h2>${t("dashboard.analysisRecommendations")}</h2>
+          <ul>${requestedAnalysis.actions.map((item) => `<li>${item}</li>`).join("")}</ul>
+          <script>
+            window.onload = function () {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    reportWindow.document.open();
+    reportWindow.document.write(reportHtml);
+    reportWindow.document.close();
+  };
+
   if (loading)
     return (
       <div className="dashboard-page" style={{ textAlign: "center" }}>
@@ -393,6 +590,84 @@ export default function Dashboard() {
           <span className="dashboard-kpi__label">{t("dashboard.avgRating")}</span>
           <span className="dashboard-kpi__value">{avgRating} ★</span>
         </div>
+      </div>
+
+      <div className="dashboard-analysis">
+        <div className="dashboard-analysis__head">
+          <div>
+            <h3 className="dashboard-panel__title">{t("dashboard.analysisTitle")}</h3>
+            <p className="dashboard-panel__subtitle">{t("dashboard.analysisSubtitle")}</p>
+          </div>
+          <div className="dashboard-analysis__actions">
+            <button
+              type="button"
+              className="dashboard-filters__action"
+              onClick={() => setRequestedAnalysis(analysis)}
+            >
+              {t("dashboard.analysisAsk")}
+            </button>
+            {requestedAnalysis ? (
+              <button
+                type="button"
+                className="dashboard-filters__action dashboard-filters__action--ghost"
+                onClick={exportAnalysisPdf}
+              >
+                {t("dashboard.analysisExportPdf")}
+              </button>
+            ) : null}
+            {requestedAnalysis ? (
+              <button
+                type="button"
+                className="dashboard-filters__action dashboard-filters__action--ghost"
+                onClick={() => setRequestedAnalysis(null)}
+              >
+                {t("dashboard.analysisClose")}
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {requestedAnalysis ? (
+          <>
+            <div className="dashboard-analysis__summary">
+              <strong>{requestedAnalysis.summary}</strong>
+              <p>{requestedAnalysis.focusArea}</p>
+            </div>
+
+            <div className="dashboard-analysis__grid">
+              <div className="dashboard-analysis__section">
+                <h4>{t("dashboard.analysisStrengths")}</h4>
+                <ul>
+                  {requestedAnalysis.strengths.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="dashboard-analysis__section">
+                <h4>{t("dashboard.analysisRisks")}</h4>
+                <ul>
+                  {requestedAnalysis.risks.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="dashboard-analysis__section">
+                <h4>{t("dashboard.analysisRecommendations")}</h4>
+                <ul>
+                  {requestedAnalysis.actions.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="dashboard-analysis__empty">
+            {t("dashboard.analysisPrompt")}
+          </div>
+        )}
       </div>
 
       <div className="dashboard-grid">
