@@ -53,3 +53,15 @@ export function getAuthHeaders() {
       }
     : {};
 }
+
+export function getMembershipPlan(user = getStoredUser()) {
+  if (user?.isOwner) {
+    return "premium";
+  }
+
+  return user?.membershipPlan === "premium" ? "premium" : "standard";
+}
+
+export function hasPremiumAccess(user = getStoredUser()) {
+  return getMembershipPlan(user) === "premium";
+}

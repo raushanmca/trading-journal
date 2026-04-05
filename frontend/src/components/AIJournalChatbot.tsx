@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { getAuthHeaders } from "../utils/auth";
+import { getAuthHeaders, getStoredUser, hasPremiumAccess } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
 
@@ -35,6 +35,13 @@ export default function AIJournalChatbot() {
   const [parsedEntry, setParsedEntry] = useState<JournalEntry | null>(null);
   const [pendingJournalComment, setPendingJournalComment] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  const [premiumEnabled, setPremiumEnabled] = useState(() =>
+    hasPremiumAccess(getStoredUser()),
+  );
+
+  const openPremiumQr = () => {
+    window.dispatchEvent(new Event("open-premium-qr"));
+  };
 
   useEffect(() => {
     setMessages((prev) => {
@@ -51,6 +58,21 @@ export default function AIJournalChatbot() {
       ];
     });
   }, [t]);
+
+  useEffect(() => {
+    const syncMembership = () => {
+      setPremiumEnabled(hasPremiumAccess(getStoredUser()));
+    };
+
+    syncMembership();
+    window.addEventListener("storage", syncMembership);
+    window.addEventListener("auth-changed", syncMembership);
+
+    return () => {
+      window.removeEventListener("storage", syncMembership);
+      window.removeEventListener("auth-changed", syncMembership);
+    };
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -72,6 +94,17 @@ export default function AIJournalChatbot() {
           {
             role: "assistant" as const,
             content: t("ai.signInToUse"),
+          },
+        ]);
+        return;
+      }
+
+      if (!premiumEnabled) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant" as const,
+            content: t("ai.premiumRequired"),
           },
         ]);
         return;
@@ -225,16 +258,32 @@ export default function AIJournalChatbot() {
 
       <button
         type="button"
-        className="ai-chat-widget__launcher"
-        onClick={() => setIsOpen((open) => !open)}
+        className={`ai-chat-widget__launcher${
+          premiumEnabled ? "" : " ai-chat-widget__launcher--disabled"
+        }`}
+        onClick={() => premiumEnabled && setIsOpen((open) => !open)}
+        disabled={!premiumEnabled}
+        aria-disabled={!premiumEnabled}
       >
         <span className="ai-chat-widget__launcher-label">
-          {t("ai.launcherLabel")}
+          {premiumEnabled ? t("ai.launcherLabel") : t("ai.premiumOnlyLabel")}
         </span>
         <span className="ai-chat-widget__launcher-title">
-          {t("ai.launcherTitle")}
+          {premiumEnabled ? t("ai.launcherTitle") : t("ai.premiumUpgradeCta")}
         </span>
       </button>
+      {!premiumEnabled ? (
+        <div className="ai-chat-widget__premium-note">
+          <div>{t("ai.premiumUpsell")}</div>
+          <button
+            type="button"
+            onClick={openPremiumQr}
+            className="ai-chat-widget__premium-link"
+          >
+            {t("nav.goPremium")}
+          </button>
+        </div>
+      ) : null}
 
       {/* Confirmation Dialog */}
       {showConfirm && parsedEntry && (

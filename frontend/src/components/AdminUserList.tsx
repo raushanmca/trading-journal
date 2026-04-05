@@ -58,8 +58,15 @@ export function AdminUserList() {
     }
 
     if ((user.renewalCount || 0) > 0) {
+      if (user.membershipPlan === "premium") {
+        return {
+          label: t("admin.subscriptionPremium"),
+          className: "admin-badge admin-badge--paid",
+        };
+      }
+
       return {
-        label: t("admin.subscriptionPaid"),
+        label: t("admin.subscriptionStandard"),
         className: "admin-badge admin-badge--paid",
       };
     }

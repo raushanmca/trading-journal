@@ -658,6 +658,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+.ai-chat-widget__launcher--disabled {
+  background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+  box-shadow: 0 16px 28px rgba(100, 116, 139, 0.2);
+  cursor: not-allowed;
+}
+
 .ai-chat-widget__launcher-label {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -669,6 +675,31 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .ai-chat-widget__launcher-title {
   font-size: 0.96rem;
   font-weight: 800;
+}
+
+.ai-chat-widget__premium-note {
+  max-width: 260px;
+  margin: 10px 0 0 auto;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #f8fafc;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+}
+
+.ai-chat-widget__premium-link {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #f8fafc;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 .ai-chat-widget__panel {

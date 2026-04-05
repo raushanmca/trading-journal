@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { requestPaymentApproval } from "../subscriptionService";
 import {
   buildRenewalUpiUrl,
@@ -10,14 +10,16 @@ import { useLocalization } from "../../../localization/LocalizationProvider";
 interface UseRenewSubscriptionOptions {
   userEmail?: string;
   onRenewed?: () => void;
+  startExpanded?: boolean;
 }
 
 export function useRenewSubscription({
   userEmail = "",
   onRenewed,
+  startExpanded = false,
 }: UseRenewSubscriptionOptions) {
   const { t } = useLocalization();
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(startExpanded);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -26,13 +28,22 @@ export function useRenewSubscription({
   const upiUrl = useMemo(() => buildRenewalUpiUrl(userEmail), [userEmail]);
   const upiId = useMemo(() => getRenewalUpiId(), []);
 
+  useEffect(() => {
+    if (!startExpanded) {
+      return;
+    }
+
+    setAwaitingConfirmation(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+  }, [startExpanded]);
+
   const openUpi = () => {
     if (!upiUrl) {
       setErrorMessage(t("renewal.configMissing"));
       return;
     }
 
-    window.location.assign(upiUrl);
     setAwaitingConfirmation(true);
     setErrorMessage("");
     setSuccessMessage("");

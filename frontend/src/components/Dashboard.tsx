@@ -3,8 +3,10 @@ import axios from "axios";
 import { Line } from "react-chartjs-2";
 import {
   getAuthHeaders,
+  getMembershipPlan,
   getStoredUser,
   getTrialDaysRemaining,
+  hasPremiumAccess,
   isTrialExpired,
 } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
@@ -103,6 +105,9 @@ export default function Dashboard() {
   const [trialEndsAt, setTrialEndsAt] = useState("");
   const [isOwner, setIsOwner] = useState(false);
   const [renewalCount, setRenewalCount] = useState(0);
+  const [membershipPlan, setMembershipPlan] = useState<"standard" | "premium">(
+    "standard",
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
     null,
@@ -111,6 +116,10 @@ export default function Dashboard() {
   const [dateTo, setDateTo] = useState(currentMonthRange.to);
   const [requestedAnalysis, setRequestedAnalysis] =
     useState<DashboardAnalysis | null>(null);
+
+  const openPremiumQr = () => {
+    window.dispatchEvent(new Event("open-premium-qr"));
+  };
 
   useEffect(() => {
     const syncStoredUser = () => {
@@ -121,6 +130,7 @@ export default function Dashboard() {
       setTrialEndsAt(storedUser?.trialEndsAt || "");
       setIsOwner(Boolean(storedUser?.isOwner));
       setRenewalCount(storedUser?.renewalCount || 0);
+      setMembershipPlan(getMembershipPlan(storedUser));
       setTrialDaysRemaining(getTrialDaysRemaining(storedUser));
 
       return storedUser;
@@ -185,6 +195,10 @@ export default function Dashboard() {
   }, [t]);
 
   const trialExpired = !isOwner && trialDaysRemaining === 0;
+  const premiumEnabled = hasPremiumAccess({
+    isOwner,
+    membershipPlan,
+  });
   const shouldShowTrialBanner =
     !isOwner &&
     trialDaysRemaining !== null &&
@@ -489,6 +503,17 @@ export default function Dashboard() {
               {t("dashboard.loggedInAs", { name: userName })}
             </strong>
           ) : null}
+          <span
+            className={`dashboard-hero__chip ${
+              premiumEnabled
+                ? "dashboard-hero__chip--accent"
+                : "dashboard-hero__chip--muted"
+            }`}
+          >
+            {premiumEnabled
+              ? t("dashboard.planPremium")
+              : t("dashboard.planStandard")}
+          </span>
           {isOwner ? (
             <span className="dashboard-hero__chip dashboard-hero__chip--accent">
               {t("nav.ownerAccess", {
@@ -498,6 +523,28 @@ export default function Dashboard() {
           ) : null}
         </div>
       </div>
+      {!isOwner && !premiumEnabled ? (
+        <div className="dashboard-banner dashboard-banner--premium">
+          <div className="dashboard-banner__label">
+            {t("dashboard.premiumLabel")}
+          </div>
+          <h2 className="dashboard-banner__heading">
+            {t("dashboard.premiumTitle")}
+          </h2>
+          <p className="dashboard-banner__body">
+            {t("dashboard.premiumBody")}
+          </p>
+          <div className="dashboard-banner__actions">
+            <button
+              type="button"
+              className="dashboard-filters__action"
+              onClick={openPremiumQr}
+            >
+              {t("nav.goPremium")}
+            </button>
+          </div>
+        </div>
+      ) : null}
       {isOwner ? (
         <div className="dashboard-banner">
           <div className="dashboard-banner__label">{t("dashboard.ownerAccessLabel")}</div>
@@ -614,6 +661,8 @@ export default function Dashboard() {
               type="button"
               className="dashboard-filters__action"
               onClick={() => setRequestedAnalysis(analysis)}
+              disabled={!premiumEnabled}
+              aria-disabled={!premiumEnabled}
             >
               {t("dashboard.analysisAsk")}
             </button>
@@ -676,9 +725,23 @@ export default function Dashboard() {
           </>
         ) : (
           <div className="dashboard-analysis__empty">
-            {t("dashboard.analysisPrompt")}
+            {premiumEnabled
+              ? t("dashboard.analysisPrompt")
+              : t("dashboard.analysisPremiumOnly")}
           </div>
         )}
+        {!premiumEnabled ? (
+          <div className="dashboard-analysis__upgrade-note">
+            <div>{t("dashboard.analysisUpgradeCta")}</div>
+            <button
+              type="button"
+              onClick={openPremiumQr}
+              className="dashboard-analysis__upgrade-link"
+            >
+              {t("nav.goPremium")}
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className="dashboard-grid">

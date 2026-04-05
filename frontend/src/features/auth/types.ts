@@ -7,4 +7,6 @@ export interface StoredUser {
   trialEndsAt?: string;
   isTrialExpired?: boolean;
   trialDays?: number;
+  membershipPlan?: "standard" | "premium";
+  isPremium?: boolean;
 }

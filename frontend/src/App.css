@@ -885,6 +885,11 @@ html {
   color: #0f172a;
 }
 
+.auth-modal .renew-actions__button--secondary {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
 .renew-actions__button:disabled {
   opacity: 0.72;
   cursor: wait;
@@ -928,6 +933,14 @@ html {
 }
 
 .dashboard-banner .renew-actions__success {
+  color: #047857;
+}
+
+.auth-modal .renew-actions__error {
+  color: #b91c1c;
+}
+
+.auth-modal .renew-actions__success {
   color: #047857;
 }
 
@@ -1340,6 +1353,11 @@ html {
   color: #0f766e;
 }
 
+.dashboard-hero__chip--muted {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+}
+
 .dashboard-banner,
 .dashboard-kpi,
 .dashboard-chart,
@@ -1372,12 +1390,33 @@ html {
   margin-top: 14px;
 }
 
+.dashboard-banner__heading {
+  margin: 0;
+  color: #7c2d12;
+  font-size: 1.4rem;
+}
+
+.dashboard-banner__body {
+  margin: 10px 0 0;
+  color: #9a3412;
+  line-height: 1.7;
+}
+
 .dashboard-banner--trial {
   background: linear-gradient(
     180deg,
     rgba(239, 246, 255, 0.92),
     rgba(255, 255, 255, 0.92)
   );
+}
+
+.dashboard-banner--premium {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 247, 237, 0.96),
+    rgba(254, 242, 242, 0.94)
+  );
+  border-color: rgba(249, 115, 22, 0.22);
 }
 
 .dashboard-banner--danger {
@@ -1480,6 +1519,13 @@ html {
   cursor: pointer;
 }
 
+.dashboard-filters__action:disabled,
+.dashboard-filters__action[aria-disabled="true"] {
+  background: rgba(148, 163, 184, 0.5);
+  color: #f8fafc;
+  cursor: not-allowed;
+}
+
 .dashboard-filters__action--ghost {
   background: rgba(15, 23, 42, 0.08);
   color: #0f172a;
@@ -1569,6 +1615,30 @@ html {
   border: 1px dashed rgba(148, 163, 184, 0.4);
   color: #475569;
   line-height: 1.6;
+}
+
+.dashboard-analysis__upgrade-note {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 247, 237, 0.96), rgba(254, 242, 242, 0.96));
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  color: #9a3412;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.dashboard-analysis__upgrade-link {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #9a3412;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 .dashboard-kpi__label {

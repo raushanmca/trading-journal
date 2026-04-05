@@ -6,6 +6,7 @@ import { useAppDateFormatter } from "../../localization/date";
 import { TrialStatusToast } from "./TrialStatusToast";
 import { AdminNotifications } from "../../components/AdminNotifications";
 import LoginForm from "../../components/LoginForm";
+import { RenewAccessActions } from "../../features/subscription/components/RenewAccessActions";
 
 interface AppShellProps {
   accountMenuRef: React.RefObject<HTMLDivElement | null>;
@@ -35,6 +36,7 @@ export function AppShell({
   const { locale, locales, setLocale, t } = useLocalization();
   const { formatShortDate } = useAppDateFormatter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isPremiumQrModalOpen, setIsPremiumQrModalOpen] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -56,6 +58,19 @@ export function AppShell({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isAuthModalOpen]);
+
+  useEffect(() => {
+    const handleOpenPremiumQr = () => {
+      setIsPremiumQrModalOpen(true);
+      setIsAccountMenuOpen(false);
+    };
+
+    window.addEventListener("open-premium-qr", handleOpenPremiumQr);
+
+    return () => {
+      window.removeEventListener("open-premium-qr", handleOpenPremiumQr);
+    };
+  }, [setIsAccountMenuOpen]);
 
   return (
     <div className="app-shell">
@@ -171,6 +186,16 @@ export function AppShell({
                       {t("nav.dashboard")}
                     </Link>
 
+                    {!user?.isOwner && user?.membershipPlan !== "premium" ? (
+                      <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new Event("open-premium-qr"))}
+                        className="app-shell__menu-link"
+                      >
+                        {t("nav.goPremium")}
+                      </button>
+                    ) : null}
+
                     <button
                       onClick={onSignOut}
                       className="app-shell__menu-action"
@@ -212,6 +237,31 @@ export function AppShell({
             <h2 className="auth-modal__title">{t("login.title")}</h2>
             <p className="auth-modal__lead">{t("login.description")}</p>
             <LoginForm onComplete={() => setIsAuthModalOpen(false)} />
+          </div>
+        </div>
+      ) : null}
+      {isPremiumQrModalOpen ? (
+        <div className="auth-modal">
+          <button
+            type="button"
+            className="auth-modal__overlay"
+            onClick={() => setIsPremiumQrModalOpen(false)}
+          />
+          <div className="auth-modal__content">
+            <button
+              type="button"
+              className="auth-modal__close"
+              onClick={() => setIsPremiumQrModalOpen(false)}
+            >
+              {t("auth.close")}
+            </button>
+            <div className="auth-modal__eyebrow">{t("dashboard.premiumLabel")}</div>
+            <h2 className="auth-modal__title">{t("dashboard.premiumTitle")}</h2>
+            <p className="auth-modal__lead">{t("dashboard.premiumBody")}</p>
+            <RenewAccessActions
+              userEmail={user?.email}
+              startExpanded
+            />
           </div>
         </div>
       ) : null}

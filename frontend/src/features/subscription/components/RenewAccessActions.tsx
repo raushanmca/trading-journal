@@ -6,12 +6,14 @@ interface RenewAccessActionsProps {
   userEmail?: string;
   onRenewed?: () => void;
   compact?: boolean;
+  startExpanded?: boolean;
 }
 
 export function RenewAccessActions({
   userEmail = "",
   onRenewed,
   compact = false,
+  startExpanded = false,
 }: RenewAccessActionsProps) {
   const { t } = useLocalization();
   const {
@@ -27,6 +29,7 @@ export function RenewAccessActions({
   } = useRenewSubscription({
     userEmail,
     onRenewed,
+    startExpanded,
   });
 
   return (

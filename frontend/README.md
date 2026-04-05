@@ -41,7 +41,7 @@ Notes:
 - `VITE_GOOGLE_CLIENT_ID` is used in `src/main.tsx` by `GoogleOAuthProvider`.
 - `VITE_API_URL` is optional. If it is omitted, the frontend uses `http://localhost:5000` during local development and the current site origin in non-local environments.
 - If `VITE_API_URL` is set to a localhost URL in production, the frontend now ignores that value and falls back to the current site origin instead.
-- `VITE_UPI_ID` is used to generate the renewal payment link for the Rs 10/month plan.
+- `VITE_UPI_ID` is used to generate the renewal payment link for the Rs 10 / 30-day plan.
 - `VITE_UPI_NAME` controls the payee name shown inside the UPI app.
 
 ## Run Locally
