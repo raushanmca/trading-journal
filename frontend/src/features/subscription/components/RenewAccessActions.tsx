@@ -21,6 +21,7 @@ export function RenewAccessActions({
     awaitingConfirmation,
     confirmRenewal,
     errorMessage,
+    isLoadingStatus,
     isSubmitting,
     openUpi,
     successMessage,
@@ -64,6 +65,10 @@ export function RenewAccessActions({
           {t("renewal.hint", { amount })}
         </span>
       )}
+
+      {isLoadingStatus ? (
+        <div className="renew-actions__hint">{t("renewal.statusLoading")}</div>
+      ) : null}
 
       {successMessage ? (
         <div className="renew-actions__success">{successMessage}</div>

@@ -49,6 +49,20 @@ export function AdminApproveRequests() {
     }
   }
 
+  async function denyRequest(requestId: string) {
+    try {
+      await axios.post(
+        `${BASE_URL}/api/payment-request/deny-request`,
+        { requestId },
+        { headers: getAuthHeaders() },
+      );
+      setSuccess("Request denied.");
+      fetchRequests();
+    } catch {
+      setError("Failed to deny request");
+    }
+  }
+
   const formatDateTime = (value?: string) =>
     value ? new Date(value).toLocaleString() : "-";
 
@@ -90,12 +104,20 @@ export function AdminApproveRequests() {
                 </span>
                 <strong>{formatDateTime(r.requestedAt)}</strong>
               </div>
-              <button
-                className="admin-action-button"
-                onClick={() => approveRequest(r._id)}
-              >
-                {t("admin.approve")}
-              </button>
+              <div className="admin-request-card__actions">
+                <button
+                  className="admin-action-button"
+                  onClick={() => approveRequest(r._id)}
+                >
+                  {t("admin.approve")}
+                </button>
+                <button
+                  className="admin-action-button admin-action-button--danger"
+                  onClick={() => denyRequest(r._id)}
+                >
+                  {t("admin.deny")}
+                </button>
+              </div>
             </article>
           ))}
         </div>

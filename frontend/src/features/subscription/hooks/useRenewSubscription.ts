@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { requestPaymentApproval } from "../subscriptionService";
+import {
+  getPaymentApprovalStatus,
+  requestPaymentApproval,
+} from "../subscriptionService";
 import {
   buildRenewalUpiUrl,
   getMonthlyRenewalAmount,
@@ -21,6 +24,7 @@ export function useRenewSubscription({
   const { t } = useLocalization();
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(startExpanded);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -37,6 +41,69 @@ export function useRenewSubscription({
     setErrorMessage("");
     setSuccessMessage("");
   }, [startExpanded]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncPaymentStatus = async () => {
+      try {
+        setIsLoadingStatus(true);
+        const response = await getPaymentApprovalStatus();
+
+        if (!isMounted) {
+          return;
+        }
+
+        const currentStatus = response.paymentRequest?.status;
+
+        if (currentStatus === "pending") {
+          setSuccessMessage(t("renewal.pendingStatus"));
+          setErrorMessage("");
+          return;
+        }
+
+        if (currentStatus === "approved") {
+          setSuccessMessage(t("renewal.approvedStatus"));
+          setErrorMessage("");
+          return;
+        }
+
+        if (currentStatus === "rejected") {
+          setSuccessMessage("");
+          setErrorMessage(t("renewal.rejectedStatus"));
+          return;
+        }
+
+        setErrorMessage("");
+        setSuccessMessage("");
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error("Failed to load payment request status", error);
+      } finally {
+        if (isMounted) {
+          setIsLoadingStatus(false);
+        }
+      }
+    };
+
+    void syncPaymentStatus();
+
+    const handleSync = () => {
+      void syncPaymentStatus();
+    };
+
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("auth-changed", handleSync);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("auth-changed", handleSync);
+    };
+  }, [t]);
 
   const openUpi = () => {
     if (!upiUrl) {
@@ -79,6 +146,7 @@ export function useRenewSubscription({
     awaitingConfirmation,
     confirmRenewal,
     errorMessage,
+    isLoadingStatus,
     isSubmitting,
     openUpi,
     successMessage,

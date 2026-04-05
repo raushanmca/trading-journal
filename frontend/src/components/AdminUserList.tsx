@@ -115,6 +115,21 @@ export function AdminUserList() {
     }
   }
 
+  async function denyRequest(requestId: string) {
+    try {
+      await axios.post(
+        `${BASE_URL}/api/payment-request/deny-request`,
+        { requestId },
+        { headers: getAuthHeaders() },
+      );
+      setSuccess(t("admin.denySuccess"));
+      fetchUsersAndRequests();
+    } catch (e) {
+      console.error(e);
+      setError(t("admin.denyFailed"));
+    }
+  }
+
   async function deleteUser() {
     if (!deleteCandidate) {
       return;
@@ -304,6 +319,12 @@ export function AdminUserList() {
                           >
                             {t("admin.approve")}
                           </button>
+                          <button
+                            className="admin-action-button admin-action-button--danger"
+                            onClick={() => denyRequest(req._id)}
+                          >
+                            {t("admin.deny")}
+                          </button>
                         </div>
                       ) : (
                         <span className="admin-badge admin-badge--muted">
@@ -380,12 +401,20 @@ export function AdminUserList() {
                   </span>
                   <strong>{formatDateTime(request.requestedAt)}</strong>
                 </div>
-                <button
-                  className="admin-action-button"
-                  onClick={() => approveRequest(request._id)}
-                >
-                  {t("admin.approve")}
-                </button>
+                <div className="admin-request-card__actions">
+                  <button
+                    className="admin-action-button"
+                    onClick={() => approveRequest(request._id)}
+                  >
+                    {t("admin.approve")}
+                  </button>
+                  <button
+                    className="admin-action-button admin-action-button--danger"
+                    onClick={() => denyRequest(request._id)}
+                  >
+                    {t("admin.deny")}
+                  </button>
+                </div>
               </article>
             ))}
           </div>

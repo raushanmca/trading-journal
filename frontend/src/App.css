@@ -221,6 +221,12 @@ html {
   gap: 8px;
 }
 
+.admin-request-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .admin-badge {
   display: inline-flex;
   align-items: center;

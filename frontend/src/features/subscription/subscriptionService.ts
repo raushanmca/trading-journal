@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getAuthHeaders } from "../../utils/auth";
 import { getApiBaseUrl } from "../../utils/api";
-import type { StoredUser } from "../auth/types";
+import type { PaymentRequestStatus, StoredUser } from "../auth/types";
 
 const BASE_URL = getApiBaseUrl();
 
@@ -21,6 +21,11 @@ interface PaymentApprovalResponse {
     paymentReference: string;
     status: string;
   };
+}
+
+interface PaymentApprovalStatusResponse {
+  user: StoredUser;
+  paymentRequest?: PaymentRequestStatus | null;
 }
 
 export async function renewSubscription(paymentReference = "") {
@@ -50,6 +55,24 @@ export async function requestPaymentApproval(paymentReference = "") {
       headers: authHeaders,
     },
   );
+
+  return response.data;
+}
+
+export async function getPaymentApprovalStatus() {
+  const authHeaders = getAuthHeaders();
+
+  const response = await axios.get<PaymentApprovalStatusResponse>(
+    `${BASE_URL}/api/payment-request/my-status`,
+    {
+      headers: authHeaders,
+    },
+  );
+
+  if (response.data.user) {
+    localStorage.setItem("user", JSON.stringify(response.data.user));
+    window.dispatchEvent(new Event("auth-changed"));
+  }
 
   return response.data;
 }

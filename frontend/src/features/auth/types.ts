@@ -10,3 +10,13 @@ export interface StoredUser {
   membershipPlan?: "standard" | "premium";
   isPremium?: boolean;
 }
+
+export interface PaymentRequestStatus {
+  _id?: string;
+  status?: "pending" | "approved" | "rejected";
+  paymentReference?: string;
+  requestedAt?: string;
+  approvedAt?: string | null;
+  rejectedAt?: string | null;
+  adminEmail?: string;
+}
