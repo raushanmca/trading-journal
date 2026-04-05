@@ -4,6 +4,7 @@ const requireAuth = require("../middleware/auth");
 const requireActiveTrial = require("../middleware/trial");
 const {
   createJournalEntry,
+  deleteJournalEntries,
   getJournalEntries,
 } = require("../services/journal/journalService");
 
@@ -24,6 +25,16 @@ router.get("/", requireAuth, requireActiveTrial, async (req, res) => {
       view: req.query.view === "dashboard" ? "dashboard" : "full",
     });
     res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete all journals for the signed-in user
+router.delete("/", requireAuth, async (req, res) => {
+  try {
+    const deletedCount = await deleteJournalEntries(req.user.userId);
+    res.json({ deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

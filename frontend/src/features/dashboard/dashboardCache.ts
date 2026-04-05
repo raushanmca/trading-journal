@@ -63,6 +63,16 @@ export function writeDashboardCache(trades: Trade[]) {
   localStorage.setItem(cacheKey, JSON.stringify(payload));
 }
 
+export function clearDashboardCache() {
+  const cacheKey = getDashboardCacheKey();
+
+  if (!cacheKey) {
+    return;
+  }
+
+  localStorage.removeItem(cacheKey);
+}
+
 export function isDashboardCacheFresh(savedAt: number) {
   return Date.now() - savedAt < DASHBOARD_CACHE_MAX_AGE_MS;
 }

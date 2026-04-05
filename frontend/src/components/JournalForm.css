@@ -87,12 +87,41 @@ body {
 .journal-page-hero__clock {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
   padding: 6px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(148, 163, 184, 0.16);
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+}
+
+.journal-page-hero__reset-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(220, 38, 38, 0.16);
+  border-radius: 999px;
+  background: rgba(254, 242, 242, 0.96);
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.journal-page-hero__reset-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #fee2e2;
+  box-shadow: 0 12px 20px rgba(220, 38, 38, 0.12);
+}
+
+.journal-page-hero__reset-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .journal-page-hero__clock-toggle {
@@ -600,6 +629,42 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   line-height: 1;
   cursor: pointer;
   transition: color 0.15s ease;
+}
+
+.journal-reset-modal {
+  max-width: 460px;
+}
+
+.journal-reset-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.journal-reset-modal__button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.journal-reset-modal__button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+.journal-reset-modal__button--cancel {
+  background: rgba(226, 232, 240, 0.72);
+  color: #334155;
+}
+
+.journal-reset-modal__button--confirm {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(220, 38, 38, 0.18);
 }
 
 .chat-input-row {

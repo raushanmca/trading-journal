@@ -138,8 +138,14 @@ async function getRecentJournalEntries(userId, limit = 5) {
   return journals.map(toJournalResponse);
 }
 
+async function deleteJournalEntries(userId) {
+  const result = await Journal.deleteMany({ userId });
+  return result.deletedCount || 0;
+}
+
 module.exports = {
   createJournalEntry,
+  deleteJournalEntries,
   getJournalEntries,
   getRecentJournalEntries,
 };

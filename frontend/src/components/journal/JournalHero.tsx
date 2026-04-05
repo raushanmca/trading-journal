@@ -102,7 +102,15 @@ function AnalogClock({
   );
 }
 
-export default function JournalHero() {
+interface JournalHeroProps {
+  onResetJournalData: () => Promise<void> | void;
+  isResettingJournalData?: boolean;
+}
+
+export default function JournalHero({
+  onResetJournalData,
+  isResettingJournalData = false,
+}: JournalHeroProps) {
   const { locale, t } = useLocalization();
   const storedUser = getStoredUser();
   const clockPreferenceKey = getUserStorageKey("journal-clock-mode");
@@ -169,6 +177,16 @@ export default function JournalHero() {
             ) : null}
           </div>
           <div className="journal-page-hero__clock">
+            <button
+              type="button"
+              className="journal-page-hero__reset-button"
+              onClick={() => void onResetJournalData()}
+              disabled={isResettingJournalData}
+            >
+              {isResettingJournalData
+                ? t("journal.resetActionLoading")
+                : t("journal.resetAction")}
+            </button>
             <div className="journal-page-hero__clock-toggle">
               <button
                 type="button"
