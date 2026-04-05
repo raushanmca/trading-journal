@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
 import { useLocalization } from "../localization/LocalizationProvider";
+import { showToast } from "../utils/toast";
 
 function Item({ value }: { value: string }) {
   const [{ isDragging }, drag] = useDrag(() => ({
@@ -75,7 +76,7 @@ export default function InstrumentsSidebar() {
       "TCS",
     ];
     if (defaultInstruments.includes(valueToRemove)) {
-      alert(t("sidebar.alert.defaultInstrument"));
+      showToast(t("sidebar.alert.defaultInstrument"), "warning");
       return;
     }
 

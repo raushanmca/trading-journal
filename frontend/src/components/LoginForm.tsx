@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
+import { showToast } from "../utils/toast";
 
 type LoginFormProps = {
   onComplete?: () => void;
@@ -31,7 +32,7 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
     window.dispatchEvent(new Event("auth-changed"));
 
     if (payload.user?.isTrialExpired) {
-      alert(t("login.alert.trialExpired"));
+      showToast(t("login.alert.trialExpired"), "warning");
       navigate("/dashboard");
       onComplete?.();
       return;
@@ -51,18 +52,18 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err)) {
-        alert(err.response?.data?.message || t("login.alert.failed"));
+        showToast(err.response?.data?.message || t("login.alert.failed"), "error");
         setIsGoogleLoading(false);
         return;
       }
-      alert(t("login.alert.failed"));
+      showToast(t("login.alert.failed"), "error");
       setIsGoogleLoading(false);
     }
   };
 
   const handleGoogleError = () => {
     setIsGoogleLoading(false);
-    alert(t("login.alert.googleFailed"));
+    showToast(t("login.alert.googleFailed"), "error");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -79,9 +80,9 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err)) {
-        alert(err.response?.data?.message || t("login.alert.failed"));
+        showToast(err.response?.data?.message || t("login.alert.failed"), "error");
       } else {
-        alert(t("login.alert.failed"));
+        showToast(t("login.alert.failed"), "error");
       }
     } finally {
       setIsFormLoading(false);

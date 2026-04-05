@@ -7,6 +7,7 @@ import { TrialStatusToast } from "./TrialStatusToast";
 import { AdminNotifications } from "../../components/AdminNotifications";
 import LoginForm from "../../components/LoginForm";
 import { RenewAccessActions } from "../../features/subscription/components/RenewAccessActions";
+import type { AppToastDetail, AppToastTone } from "../../utils/toast";
 
 interface AppShellProps {
   accountMenuRef: React.RefObject<HTMLDivElement | null>;
@@ -33,10 +34,18 @@ export function AppShell({
   user,
   userInitials,
 }: AppShellProps) {
+  const TOAST_DURATION_MS = 4000;
   const { locale, locales, setLocale, t } = useLocalization();
   const { formatShortDate } = useAppDateFormatter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isPremiumQrModalOpen, setIsPremiumQrModalOpen] = useState(false);
+  const [toasts, setToasts] = useState<
+    Array<{ id: number; message: string; tone: AppToastTone }>
+  >([]);
+
+  const removeToast = (id: number) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  };
 
   useEffect(() => {
     if (isSignedIn) {
@@ -71,6 +80,37 @@ export function AppShell({
       window.removeEventListener("open-premium-qr", handleOpenPremiumQr);
     };
   }, [setIsAccountMenuOpen]);
+
+  useEffect(() => {
+    const handleToast = (event: Event) => {
+      const customEvent = event as CustomEvent<AppToastDetail>;
+      const message = customEvent.detail?.message?.trim();
+
+      if (!message) {
+        return;
+      }
+
+      const id = Date.now() + Math.floor(Math.random() * 1000);
+      setToasts((current) => [
+        ...current,
+        {
+          id,
+          message,
+          tone: customEvent.detail?.tone || "info",
+        },
+      ]);
+
+      window.setTimeout(() => {
+        removeToast(id);
+      }, TOAST_DURATION_MS);
+    };
+
+    window.addEventListener("app-toast", handleToast as EventListener);
+
+    return () => {
+      window.removeEventListener("app-toast", handleToast as EventListener);
+    };
+  }, []);
 
   return (
     <div className="app-shell">
@@ -263,6 +303,27 @@ export function AppShell({
               startExpanded
             />
           </div>
+        </div>
+      ) : null}
+      {toasts.length > 0 ? (
+        <div className="app-toast-stack" aria-live="polite" aria-atomic="true">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`app-toast app-toast--${toast.tone}`}
+              role="status"
+            >
+              <span>{toast.message}</span>
+              <button
+                type="button"
+                className="app-toast__close"
+                onClick={() => removeToast(toast.id)}
+                aria-label={t("auth.close")}
+              >
+                ×
+              </button>
+            </div>
+          ))}
         </div>
       ) : null}
       <TrialStatusToast

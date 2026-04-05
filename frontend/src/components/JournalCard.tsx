@@ -4,6 +4,7 @@ import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
+import { showToast } from "../utils/toast";
 import JournalDatePicker from "./JournalDatePicker";
 const BASE_URL = getApiBaseUrl();
 
@@ -78,12 +79,12 @@ export default function JournalCard() {
     const authHeaders = getAuthHeaders();
 
     if (!authHeaders.Authorization) {
-      alert(t("journal.alert.signIn"));
+      showToast(t("journal.alert.signIn"), "warning");
       return;
     }
 
     if (!form.date || !form.instrument || !form.pnl) {
-      alert(t("journal.alert.required"));
+      showToast(t("journal.alert.required"), "warning");
       return;
     }
 
@@ -110,7 +111,7 @@ export default function JournalCard() {
       },
     );
 
-    alert(t("journal.alert.saved"));
+    showToast(t("journal.alert.saved"), "success");
 
     setForm({
       date: getTodayInputDate(),

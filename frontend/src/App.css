@@ -854,6 +854,67 @@ html {
   flex-shrink: 0;
 }
 
+.app-toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: grid;
+  gap: 12px;
+  width: min(360px, calc(100vw - 24px));
+}
+
+.app-toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: #fffef6;
+  box-shadow: 0 22px 40px rgba(15, 23, 42, 0.22);
+  animation: app-toast-enter 0.2s ease-out;
+}
+
+.app-toast--info {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+}
+
+.app-toast--success {
+  background: linear-gradient(135deg, #047857, #10b981);
+}
+
+.app-toast--warning {
+  background: linear-gradient(135deg, #b45309, #f59e0b);
+}
+
+.app-toast--error {
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+}
+
+.app-toast__close {
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+@keyframes app-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .renew-actions {
   display: flex;
   align-items: center;

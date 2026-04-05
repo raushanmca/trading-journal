@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
 import { useLocalization } from "../localization/LocalizationProvider";
+import { showToast } from "../utils/toast";
 
 function getSentimentColor(text: string): string {
   const lower = text.toLowerCase();
@@ -158,7 +159,7 @@ export default function LessonsSidebar() {
     ];
 
     if (defaultLessons.includes(valueToRemove)) {
-      alert(t("sidebar.alert.defaultLesson"));
+      showToast(t("sidebar.alert.defaultLesson"), "warning");
       return;
     }
 
