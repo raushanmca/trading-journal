@@ -856,12 +856,14 @@ html {
 
 .app-toast-stack {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 90;
   display: grid;
   gap: 12px;
-  width: min(360px, calc(100vw - 24px));
+  width: min(420px, calc(100vw - 24px));
+  justify-items: center;
 }
 
 .app-toast {
@@ -869,6 +871,7 @@ html {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
   padding: 14px 16px;
   border-radius: 18px;
   color: #fffef6;
