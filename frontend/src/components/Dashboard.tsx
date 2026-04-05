@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import {
@@ -12,6 +12,7 @@ import {
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
 import { useAppDateFormatter } from "../localization/date";
+import { showToast } from "../utils/toast";
 import {
   isDashboardCacheFresh,
   readDashboardCache,
@@ -94,9 +95,19 @@ function buildDateRangeLabel(from: string, to: string, fallback: string) {
   return `Up to ${to}`;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export default function Dashboard() {
   const { t } = useLocalization();
   const { formatCompactDate, formatLongDate } = useAppDateFormatter();
+  const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentMonthRange = getCurrentMonthRange();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -415,14 +426,18 @@ export default function Dashboard() {
       return;
     }
 
-    const reportWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
-
-    if (!reportWindow) {
-      return;
-    }
-
     const reportTitle = t("dashboard.analysisTitle");
     const reportRange = buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime"));
+    const chartImage = chartRef.current?.toBase64Image() || "";
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.setAttribute("aria-hidden", "true");
+
     const reportHtml = `
       <!doctype html>
       <html lang="en">
@@ -438,28 +453,54 @@ export default function Dashboard() {
           </style>
         </head>
         <body>
-          <h1>${reportTitle}</h1>
-          <p class="meta">${reportRange}</p>
-          <p>${requestedAnalysis.summary}</p>
-          <p>${requestedAnalysis.focusArea}</p>
-          <h2>${t("dashboard.analysisStrengths")}</h2>
-          <ul>${requestedAnalysis.strengths.map((item) => `<li>${item}</li>`).join("")}</ul>
-          <h2>${t("dashboard.analysisRisks")}</h2>
-          <ul>${requestedAnalysis.risks.map((item) => `<li>${item}</li>`).join("")}</ul>
-          <h2>${t("dashboard.analysisRecommendations")}</h2>
-          <ul>${requestedAnalysis.actions.map((item) => `<li>${item}</li>`).join("")}</ul>
-          <script>
-            window.onload = function () {
-              window.print();
-            };
-          </script>
+          <h1>${escapeHtml(reportTitle)}</h1>
+          <p class="meta">${escapeHtml(reportRange)}</p>
+          ${
+            chartImage
+              ? `
+          <h2>${escapeHtml(t("dashboard.chartTitle"))}</h2>
+          <img
+            src="${chartImage}"
+            alt="${escapeHtml(t("dashboard.chartTitle"))}"
+            style="width: 100%; max-width: 760px; display: block; margin: 0 0 24px; border-radius: 16px;"
+          />
+          `
+              : ""
+          }
+          <p>${escapeHtml(requestedAnalysis.summary)}</p>
+          <p>${escapeHtml(requestedAnalysis.focusArea)}</p>
+          <h2>${escapeHtml(t("dashboard.analysisStrengths"))}</h2>
+          <ul>${requestedAnalysis.strengths.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+          <h2>${escapeHtml(t("dashboard.analysisRisks"))}</h2>
+          <ul>${requestedAnalysis.risks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+          <h2>${escapeHtml(t("dashboard.analysisRecommendations"))}</h2>
+          <ul>${requestedAnalysis.actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
         </body>
       </html>
     `;
 
-    reportWindow.document.open();
-    reportWindow.document.write(reportHtml);
-    reportWindow.document.close();
+    document.body.appendChild(iframe);
+
+    const reportWindow = iframe.contentWindow;
+    const reportDocument = iframe.contentDocument;
+
+    if (!reportWindow || !reportDocument) {
+      iframe.remove();
+      showToast("Unable to export PDF right now.", "error");
+      return;
+    }
+
+    reportDocument.open();
+    reportDocument.write(reportHtml);
+    reportDocument.close();
+
+    window.setTimeout(() => {
+      reportWindow.focus();
+      reportWindow.print();
+      window.setTimeout(() => {
+        iframe.remove();
+      }, 1000);
+    }, 250);
   };
 
   if (loading)
@@ -754,7 +795,7 @@ export default function Dashboard() {
           <h3 className="dashboard-panel__title">{t("dashboard.chartTitle")}</h3>
           <p className="dashboard-panel__subtitle">{t("dashboard.chartSubtitle")}</p>
           {filteredTrades.length > 0 ? (
-            <Line data={chartData} options={chartOptions} />
+            <Line ref={chartRef} data={chartData} options={chartOptions} />
           ) : (
             <div className="dashboard-empty">{t("dashboard.noTrades")}</div>
           )}

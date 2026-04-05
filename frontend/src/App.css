@@ -856,9 +856,9 @@ html {
 
 .app-toast-stack {
   position: fixed;
-  top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 24px;
+  transform: translateX(-50%);
   z-index: 90;
   display: grid;
   gap: 12px;
