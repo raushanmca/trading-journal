@@ -12,6 +12,15 @@ router.post(
   requireAuth,
   requireActiveTrial,
   async (req, res) => {
+    const membershipPlan = req.account?.membershipPlan || "standard";
+    const hasPremiumAccess = req.trial?.isOwner || membershipPlan === "premium";
+
+    if (!hasPremiumAccess) {
+      return res.status(403).json({
+        message: "Premium membership is required to use AI analysis",
+      });
+    }
+
     const { message } = req.body;
 
     if (!message || typeof message !== "string" || !message.trim()) {

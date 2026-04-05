@@ -40,7 +40,7 @@ router.get("/all-users", async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     const users = await User.find(
       {},
-      "email name trialEndsAt renewalCount isOwner loginCount lastLoginAt",
+      "email name trialEndsAt renewalCount isOwner loginCount lastLoginAt membershipPlan",
     );
     return res.json({ users });
   } catch (error) {
@@ -298,6 +298,10 @@ router.get("/github/callback", async (req, res) => {
         trialEndsAt: trialStatus.trialEndsAt,
         isTrialExpired: trialStatus.isTrialExpired,
         trialDays: trialStatus.trialDays,
+        membershipPlan: loggedInAccount.membershipPlan || "standard",
+        isPremium:
+          trialStatus.isOwner ||
+          (loggedInAccount.membershipPlan || "standard") === "premium",
       }),
     );
 

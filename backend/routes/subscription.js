@@ -27,6 +27,10 @@ router.post("/renew", requireAuth, async (req, res) => {
         trialEndsAt: trialStatus.trialEndsAt,
         isTrialExpired: trialStatus.isTrialExpired,
         trialDays: trialStatus.trialDays,
+        membershipPlan: account.membershipPlan || "standard",
+        isPremium:
+          trialStatus.isOwner ||
+          (account.membershipPlan || "standard") === "premium",
       },
       renewal: {
         amount: MONTHLY_RENEWAL_AMOUNT,

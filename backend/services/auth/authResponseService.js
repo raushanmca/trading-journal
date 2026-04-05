@@ -5,6 +5,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-key";
 
 function buildAuthenticatedUser(account) {
   const trialStatus = getTrialStatus(account);
+  const membershipPlan = account.membershipPlan || "standard";
+  const isPremium = trialStatus.isOwner || membershipPlan === "premium";
 
   return {
     trialStatus,
@@ -19,6 +21,8 @@ function buildAuthenticatedUser(account) {
       trialEndsAt: trialStatus.trialEndsAt,
       isTrialExpired: trialStatus.isTrialExpired,
       trialDays: trialStatus.trialDays,
+      membershipPlan,
+      isPremium,
     },
   };
 }

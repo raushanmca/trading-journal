@@ -69,6 +69,11 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    membershipPlan: {
+      type: String,
+      enum: ["standard", "premium"],
+      default: "standard",
+    },
   },
   { timestamps: true },
 );

@@ -82,6 +82,7 @@ router.post("/approve-request", requireAuth, async (req, res) => {
     user.lastPaymentAmount = require("../utils/trial").MONTHLY_RENEWAL_AMOUNT;
     user.lastPaymentReference =
       paymentRequest.paymentReference || "manual-admin";
+    user.membershipPlan = "premium";
     await user.save();
     paymentRequest.status = "approved";
     paymentRequest.approvedAt = now;
@@ -90,7 +91,7 @@ router.post("/approve-request", requireAuth, async (req, res) => {
     await paymentRequest.save();
     // TODO: Notify user of approval (e.g., email, dashboard notification)
     return res.json({
-      message: "Subscription approved and extended",
+      message: "Subscription approved and extended by 30 days",
       paymentRequest,
     });
   } catch (error) {
