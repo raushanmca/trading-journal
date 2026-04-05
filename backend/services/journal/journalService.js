@@ -55,6 +55,39 @@ function toJournalResponse(journal) {
   };
 }
 
+function toDashboardJournalResponse(journal) {
+  const hasDashboardSnapshot =
+    Boolean(journal.dashboardDate) ||
+    Boolean(journal.dashboardInstrument) ||
+    Array.isArray(journal.dashboardMistakes);
+
+  if (hasDashboardSnapshot) {
+    return {
+      _id: journal._id,
+      date: journal.dashboardDate || "",
+      instrument: journal.dashboardInstrument || "",
+      pnl: journal.dashboardPnl || 0,
+      rating: journal.dashboardRating || 0,
+      mistakes: journal.dashboardMistakes || [],
+      createdAt: journal.createdAt,
+      updatedAt: journal.updatedAt,
+    };
+  }
+
+  const fullResponse = toJournalResponse(journal);
+
+  return {
+    _id: fullResponse._id,
+    date: fullResponse.date,
+    instrument: fullResponse.instrument,
+    pnl: fullResponse.pnl,
+    rating: fullResponse.rating,
+    mistakes: fullResponse.mistakes || [],
+    createdAt: fullResponse.createdAt,
+    updatedAt: fullResponse.updatedAt,
+  };
+}
+
 async function createJournalEntry(payload, user) {
   const normalizedPayload = {
     ...payload,
@@ -64,16 +97,34 @@ async function createJournalEntry(payload, user) {
     encryptedEntry: encryptJournalPayload(normalizedPayload),
     userId: user.userId,
     userEmail: user.email || "",
+    dashboardDate: normalizedPayload.date || "",
+    dashboardInstrument: normalizedPayload.instrument || "",
+    dashboardPnl: normalizedPayload.pnl || 0,
+    dashboardRating: normalizedPayload.rating || 0,
+    dashboardMistakes: normalizedPayload.mistakes || [],
   });
 
   const savedJournal = await journal.save();
   return toJournalResponse(savedJournal);
 }
 
-async function getJournalEntries(userId) {
+async function getJournalEntries(userId, options = {}) {
+  const { view = "full" } = options;
+
+  if (view === "dashboard") {
+    const journals = await Journal.find(
+      { userId },
+      "_id createdAt updatedAt dashboardDate dashboardInstrument dashboardPnl dashboardRating dashboardMistakes encryptedEntry date instrument pnl rating mistakes",
+    )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return journals.map(toDashboardJournalResponse);
+  }
+
   const journals = await Journal.find({ userId }).sort({
     createdAt: -1,
-  });
+  }).lean();
 
   return journals.map(toJournalResponse);
 }
@@ -81,7 +132,8 @@ async function getJournalEntries(userId) {
 async function getRecentJournalEntries(userId, limit = 5) {
   const journals = await Journal.find({ userId })
     .sort({ createdAt: -1 })
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
   return journals.map(toJournalResponse);
 }

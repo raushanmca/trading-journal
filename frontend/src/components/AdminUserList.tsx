@@ -186,7 +186,12 @@ export function AdminUserList() {
   }, [location.hash, pendingRequests.length, loading]);
 
   if (loading)
-    return <div className="admin-state">{t("admin.loadingUsers")}</div>;
+    return (
+      <div className="admin-state admin-state--loading">
+        <span className="login-panel__spinner login-panel__spinner--dark" />
+        <div>{t("admin.loadingUsers")}</div>
+      </div>
+    );
   if (error) return <div className="admin-state admin-state--error">{error}</div>;
 
   return (

@@ -20,7 +20,9 @@ router.post("/", requireAuth, requireActiveTrial, async (req, res) => {
 // ✅ Get All Journals
 router.get("/", requireAuth, requireActiveTrial, async (req, res) => {
   try {
-    const data = await getJournalEntries(req.user.userId);
+    const data = await getJournalEntries(req.user.userId, {
+      view: req.query.view === "dashboard" ? "dashboard" : "full",
+    });
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

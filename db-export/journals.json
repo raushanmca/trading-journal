@@ -1,0 +1,464 @@
+[
+  {
+    "_id": "69c8f7af8a973396350a34a8",
+    "date": "2026-03-27",
+    "instrument": "NIFTY",
+    "pnl": 11000,
+    "mistakes": [
+      "Over Trading",
+      "Fear of Missing Out (FOMO)",
+      "Revenge Trading",
+      "Ignored Stop Loss"
+    ],
+    "brokenRules": [],
+    "rating": 2,
+    "createdAt": "2026-03-29T09:58:07.071Z",
+    "updatedAt": "2026-03-29T09:58:07.071Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c8f7f48a973396350a34ab",
+    "date": "2026-03-27",
+    "instrument": "NIFTY",
+    "pnl": -22000,
+    "mistakes": [
+      "Over Trading",
+      "Fear of Missing Out (FOMO)",
+      "Revenge Trading",
+      "Ignored Stop Loss"
+    ],
+    "brokenRules": [],
+    "rating": 1,
+    "createdAt": "2026-03-29T09:59:16.657Z",
+    "updatedAt": "2026-03-29T09:59:16.657Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c8f8ac8a973396350a34af",
+    "date": "2026-03-25",
+    "instrument": "TCS",
+    "pnl": 20014,
+    "mistakes": [
+      "Follow Risk Management",
+      "Patience - Wait for Setup"
+    ],
+    "brokenRules": [],
+    "rating": 5,
+    "createdAt": "2026-03-29T10:02:20.972Z",
+    "updatedAt": "2026-03-29T10:02:20.972Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c91f92023da014c9a1f8e0",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-03-27",
+    "instrument": "NIFTY",
+    "pnl": 5000,
+    "mistakes": [
+      "Patience - Wait for Setup",
+      "Cut Losses Early",
+      "Disciplined Entry",
+      "Best Setup - High Probability"
+    ],
+    "brokenRules": [],
+    "rating": 5,
+    "createdAt": "2026-03-29T12:48:18.792Z",
+    "updatedAt": "2026-03-29T12:48:18.792Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c91fb8023da014c9a1f8e7",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-03-26",
+    "instrument": "NIFTY",
+    "pnl": -4000,
+    "mistakes": [
+      "Fear of Missing Out (FOMO)",
+      "Over Trading"
+    ],
+    "brokenRules": [],
+    "rating": 2,
+    "createdAt": "2026-03-29T12:48:56.824Z",
+    "updatedAt": "2026-03-29T12:48:56.824Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c926b6023da014c9a1f8fa",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-03-29",
+    "instrument": "HDFCBANK",
+    "pnl": 3000,
+    "mistakes": [
+      "Patience - Wait for Setup",
+      "Disciplined Entry"
+    ],
+    "brokenRules": [],
+    "rating": 4,
+    "createdAt": "2026-03-29T13:18:46.793Z",
+    "updatedAt": "2026-03-29T13:18:46.793Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c941d6c9c511f453d40950",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-03-29",
+    "instrument": "NIFTY",
+    "pnl": 0,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-03-29T15:14:30.652Z",
+    "updatedAt": "2026-03-29T15:14:30.652Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c941fbc9c511f453d40955",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-03-29",
+    "instrument": "BANKNIFTY",
+    "pnl": 500,
+    "mistakes": [
+      "Avoid FOMO entries"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-03-29T15:15:07.531Z",
+    "updatedAt": "2026-03-29T15:15:07.531Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c9428059649ba34992c947",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-03-29",
+    "instrument": "NIFTY",
+    "pnl": -500,
+    "mistakes": [
+      "Avoid FOMO entries"
+    ],
+    "brokenRules": [],
+    "rating": 2,
+    "createdAt": "2026-03-29T15:17:20.463Z",
+    "updatedAt": "2026-03-29T15:17:20.463Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c9437559649ba34992c950",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-03-29",
+    "instrument": "TCS",
+    "pnl": 700,
+    "mistakes": [
+      "Disciplined Entry"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-03-29T15:21:25.800Z",
+    "updatedAt": "2026-03-29T15:21:25.800Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c9fb8d17b04be3938a21e5",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-03-30",
+    "instrument": "NIFTY",
+    "pnl": 1000,
+    "mistakes": [],
+    "brokenRules": [],
+    "rating": 4,
+    "createdAt": "2026-03-30T04:26:53.578Z",
+    "updatedAt": "2026-03-30T04:26:53.578Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c9fbc817b04be3938a21ec",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-03-30",
+    "instrument": "NIFTY",
+    "pnl": -2000,
+    "mistakes": [
+      "Avoid FOMO entries"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-03-30T04:27:52.505Z",
+    "updatedAt": "2026-03-30T04:27:52.505Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ca04c227c73616c80fa5cc",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-03-30",
+    "instrument": "TCS",
+    "pnl": 600,
+    "mistakes": [
+      "Respect risk management"
+    ],
+    "brokenRules": [],
+    "rating": 4,
+    "createdAt": "2026-03-30T05:06:10.833Z",
+    "updatedAt": "2026-03-30T05:06:10.833Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ca04f927c73616c80fa5d3",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-03-30",
+    "instrument": "NIFTY",
+    "pnl": -10000,
+    "mistakes": [
+      "Over Trading",
+      "Fear of Missing Out (FOMO)",
+      "Cut Losses Early"
+    ],
+    "brokenRules": [],
+    "rating": 1,
+    "createdAt": "2026-03-30T05:07:05.257Z",
+    "updatedAt": "2026-03-30T05:07:05.257Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cc5a2924e9a80545c80d30",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "date": "2026-04-01",
+    "instrument": "NIFTY",
+    "pnl": -500,
+    "mistakes": [
+      "Ignored Stop Loss"
+    ],
+    "brokenRules": [],
+    "rating": 1,
+    "createdAt": "2026-03-31T23:35:05.024Z",
+    "updatedAt": "2026-03-31T23:35:05.024Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ccf4038807bb76b632b595",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-04-01",
+    "instrument": "NIFTY",
+    "pnl": 12,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-01T10:31:31.253Z",
+    "updatedAt": "2026-04-01T10:31:31.253Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ccf4398807bb76b632b59a",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-04-01",
+    "instrument": "NIFTY",
+    "pnl": -1000,
+    "mistakes": [
+      "Fear of Missing Out (FOMO)",
+      "Over Trading"
+    ],
+    "brokenRules": [],
+    "rating": 1,
+    "createdAt": "2026-04-01T10:32:25.990Z",
+    "updatedAt": "2026-04-01T10:32:25.990Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ce229f7f1d37b98ac6e2b5",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-04-02",
+    "instrument": "NIFTY",
+    "pnl": 1300,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 4,
+    "createdAt": "2026-04-02T08:02:39.937Z",
+    "updatedAt": "2026-04-02T08:02:39.937Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ce366d41bd90af3be72373",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-04-02",
+    "instrument": "NIFTY",
+    "pnl": 9000,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-02T09:27:09.082Z",
+    "updatedAt": "2026-04-02T09:27:09.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ce4283810d5d26275147d6",
+    "userId": "108519849984225691147",
+    "userEmail": "lakshmikanth7717@gmail.com",
+    "date": "2026-04-02",
+    "instrument": "NIFTY",
+    "pnl": 0,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-02T10:18:43.085Z",
+    "updatedAt": "2026-04-02T10:18:43.085Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ce42ac810d5d26275147dd",
+    "userId": "108519849984225691147",
+    "userEmail": "lakshmikanth7717@gmail.com",
+    "date": "2026-04-02",
+    "instrument": "NIFTY",
+    "pnl": 5000,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-02T10:19:24.140Z",
+    "updatedAt": "2026-04-02T10:19:24.140Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ce42ac810d5d26275147e0",
+    "userId": "108519849984225691147",
+    "userEmail": "lakshmikanth7717@gmail.com",
+    "date": "2026-04-02",
+    "instrument": "NIFTY",
+    "pnl": 5000,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-02T10:19:24.430Z",
+    "updatedAt": "2026-04-02T10:19:24.430Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d058a590144c29a79998ce",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "date": "2026-04-04",
+    "instrument": "BTC",
+    "pnl": 500,
+    "mistakes": [
+      "Patience - Wait for Setup"
+    ],
+    "brokenRules": [],
+    "rating": 4,
+    "createdAt": "2026-04-04T00:17:41.410Z",
+    "updatedAt": "2026-04-04T00:17:41.410Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0abffed9acbeb952675ca",
+    "userId": "111784609321312733170",
+    "userEmail": "rshan45@gmail.com",
+    "encryptedEntry": "QxBfLQB7P5J2khgs.fLdQVE0qFwAmVzbXMQuAfQ==.JC3t8FUo2IPTsyrr4gzxn9IYLvZCmRTVmi++TW7ByoHCtR7JIRpOg2g/vY2hD6bR4T8sLM1TXBpN9htyy/l5uns9+IM5itUnmP0wmD5uU28zj0Nf3oB6dALX8Y0n3j96SaE+2/tqCa6pgDbOj3GJCebkF60Irqck8yS05znCRnc9WDdlsGjzV1vwmHdxRgsq+3p3bS9IqVSwPOJzsMKwaiUUfWq9py2NAyK06beN10ylLJhmD4dect7R8j2B6WrErWFiGZ9ZprluXy8=",
+    "mistakes": [],
+    "journalComment": "",
+    "brokenRules": [],
+    "createdAt": "2026-04-04T06:13:19.382Z",
+    "updatedAt": "2026-04-04T06:13:19.382Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0c1e24e744d032e562cca",
+    "userId": "114967183712946115667",
+    "userEmail": "rupeshsahu7509@gmail.com",
+    "date": "2026-04-04",
+    "instrument": "NIFTY",
+    "pnl": -5000,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "journalComment": "Hello i invested in nify 5000 rs i am in loss of 100rs",
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-04T07:46:42.785Z",
+    "updatedAt": "2026-04-04T07:46:42.785Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0c22e4e744d032e562ccf",
+    "userId": "114967183712946115667",
+    "userEmail": "rupeshsahu7509@gmail.com",
+    "date": "2026-04-04",
+    "instrument": "NIFTY",
+    "pnl": 1000,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "journalComment": "Today i trade nify i earn profit of 1000",
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-04T07:47:58.263Z",
+    "updatedAt": "2026-04-04T07:47:58.263Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0c22f4e744d032e562cd2",
+    "userId": "114967183712946115667",
+    "userEmail": "rupeshsahu7509@gmail.com",
+    "date": "2026-04-04",
+    "instrument": "NIFTY",
+    "pnl": 1000,
+    "mistakes": [
+      "Disciplined execution"
+    ],
+    "journalComment": "Today i trade nify i earn profit of 1000",
+    "brokenRules": [],
+    "rating": 3,
+    "createdAt": "2026-04-04T07:47:59.042Z",
+    "updatedAt": "2026-04-04T07:47:59.042Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0d3704a4aab901c6fef38",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "encryptedEntry": "Xc8J1v2w1H/OJzr8.625XxdblnwkOiTgoVXLCtA==.fjpLaVUeSI/E3kJ/j0+hCAbuerJQ9MOZlJTcDzx8HBdxYZnaDfYvIgQj1W6jeZ6ieTxU6FiQ7DMHT3XgGe9Mla2b9ubEnTH2+xW9M3uLPPGKg7VeonbFpffKznVTLbDLnph0hTe17UhSrsGao5ALBzhnAAxeAU1Xc0SWzQP7yPnijQldAXCJ56ViTNMpfOfDIfxlaJfi1/j2H5tSZIA6d5rtCFRKYLx1E8AyYF36K6ei7AwBwKBj03BfKreN",
+    "mistakes": [],
+    "journalComment": "",
+    "brokenRules": [],
+    "createdAt": "2026-04-04T09:01:36.985Z",
+    "updatedAt": "2026-04-04T09:01:36.985Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0d3d94a4aab901c6fef44",
+    "userId": "109906639431223538552",
+    "userEmail": "ranajeemca@gmail.com",
+    "encryptedEntry": "RXwd+UQ/JBrOhzcL.40dXBg4Zu+p3Ts0yOUQZHQ==.VLwcmSxfBl5+CjhSboBtxoroS4HofVfUQwTTpFeCXyMkzv+XKzNkfTAUa5a+1BatwxTX++R6XuHXEZ63h9guE8OXamdRz5lhmJbylz9XnHzoCnAdrHXgD7BnAjx3+GDzGMUWKRo7TLfDeAGEF0z8shalI23IGvDRYVraNRAlldZUltzpTxs21H5/kOAFtLuMZTdhnddQzWNV3mV+rW7Jl1Y9p0mgyGoCfFEHC+NOO/IbJa7r+0ytZw==",
+    "mistakes": [],
+    "journalComment": "",
+    "brokenRules": [],
+    "createdAt": "2026-04-04T09:03:21.832Z",
+    "updatedAt": "2026-04-04T09:03:21.832Z",
+    "__v": 0
+  }
+]

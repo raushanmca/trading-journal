@@ -169,7 +169,7 @@ export default function Dashboard() {
     }
 
     axios
-      .get(`${BASE_URL}/api/journal`, {
+      .get(`${BASE_URL}/api/journal?view=dashboard`, {
         headers: authHeaders,
       })
       .then((res) => {
@@ -464,8 +464,13 @@ export default function Dashboard() {
 
   if (loading)
     return (
-      <div className="dashboard-page" style={{ textAlign: "center" }}>
-        {t("dashboard.loading")}
+      <div className="dashboard-page dashboard-page--loading">
+        <div className="dashboard-loading-card">
+          <span className="login-panel__spinner login-panel__spinner--dark" />
+          <div className="dashboard-loading-card__text">
+            {t("dashboard.loading")}
+          </div>
+        </div>
       </div>
     );
 

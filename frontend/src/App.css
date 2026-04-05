@@ -149,6 +149,13 @@ html {
   color: #0f172a;
 }
 
+.admin-state--loading {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
 .admin-state--error {
   color: #b91c1c;
   border-color: rgba(248, 113, 113, 0.35);
@@ -1297,6 +1304,30 @@ html {
   max-width: 1240px;
   margin: 0 auto;
   padding: 34px 24px 72px;
+}
+
+.dashboard-page--loading {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+}
+
+.dashboard-loading-card {
+  min-width: min(92vw, 260px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-loading-card__text {
+  color: #526072;
+  font-weight: 700;
+  text-align: center;
 }
 
 .dashboard-hero {

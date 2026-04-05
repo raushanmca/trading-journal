@@ -47,9 +47,12 @@ router.get("/pending-requests", requireAuth, async (req, res) => {
   try {
     if (req.user.email !== OWNER_EMAIL)
       return res.status(403).json({ message: "Forbidden" });
-    const requests = await PaymentRequest.find({ status: "pending" }).populate(
-      "userId",
-    );
+    const requests = await PaymentRequest.find(
+      { status: "pending" },
+      "email paymentReference status requestedAt approvedAt adminEmail createdAt",
+    )
+      .sort({ requestedAt: -1 })
+      .lean();
     return res.json({ requests });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch requests" });

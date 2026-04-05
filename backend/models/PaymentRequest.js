@@ -41,4 +41,7 @@ const PaymentRequestSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+PaymentRequestSchema.index({ userId: 1, status: 1 });
+PaymentRequestSchema.index({ status: 1, requestedAt: -1 });
+
 module.exports = mongoose.model("PaymentRequest", PaymentRequestSchema);

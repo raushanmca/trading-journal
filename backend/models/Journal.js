@@ -15,6 +15,26 @@ const JournalSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    dashboardDate: {
+      type: String,
+      default: "",
+    },
+    dashboardInstrument: {
+      type: String,
+      default: "",
+    },
+    dashboardPnl: {
+      type: Number,
+      default: 0,
+    },
+    dashboardRating: {
+      type: Number,
+      default: 0,
+    },
+    dashboardMistakes: {
+      type: [String],
+      default: [],
+    },
     date: String,
     marketBias: String,
     instrument: String,
@@ -54,5 +74,7 @@ const JournalSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+JournalSchema.index({ userId: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Journal", JournalSchema);

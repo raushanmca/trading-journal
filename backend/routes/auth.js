@@ -22,26 +22,16 @@ const {
 const requireAuth = require("../middleware/auth");
 
 // Admin: Get all users and their subscription status
-router.get("/all-users", async (req, res) => {
+router.get("/all-users", requireAuth, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.replace("Bearer ", "");
-    // Simple check: decode JWT to get email (for demo, not production secure)
-    let email = "";
-    if (token) {
-      try {
-        const payload = JSON.parse(
-          Buffer.from(token.split(".")[1], "base64").toString(),
-        );
-        email = payload.email || "";
-      } catch {}
-    }
-    if (email !== OWNER_EMAIL)
+    if (req.user.email !== OWNER_EMAIL)
       return res.status(403).json({ message: "Forbidden" });
     const users = await User.find(
       {},
       "email name trialEndsAt renewalCount isOwner loginCount lastLoginAt membershipPlan",
-    );
+    )
+      .sort({ updatedAt: -1 })
+      .lean();
     return res.json({ users });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch users" });
