@@ -94,7 +94,13 @@ export function AdminUserList() {
       setError("");
     } catch (e) {
       console.error(e);
-      setError("Failed to load users and requests");
+      if (axios.isAxiosError(e)) {
+        setError(
+          e.response?.data?.message || "Failed to load users and requests",
+        );
+      } else {
+        setError("Failed to load users and requests");
+      }
     } finally {
       setLoading(false);
     }
