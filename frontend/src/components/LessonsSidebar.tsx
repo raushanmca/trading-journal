@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
 import { useLocalization } from "../localization/LocalizationProvider";
-import { showToast } from "../utils/toast";
 
 function getSentimentColor(text: string): string {
   const lower = text.toLowerCase();
@@ -110,28 +109,15 @@ export default function LessonsSidebar() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setLessons((prev) => [...new Set([...prev, ...parsed])]);
+        if (Array.isArray(parsed)) {
+          setLessons(parsed);
+        }
       } catch (e) {}
     }
   }, []);
 
-  // Save custom lessons
   useEffect(() => {
-    const defaultSet = new Set([
-      "Over Trading",
-      "Fear of Missing Out (FOMO)",
-      "Revenge Trading",
-      "Cut Losses Early",
-      "Follow Risk Management",
-      "Patience - Wait for Setup",
-      "Disciplined Entry",
-      "Best Setup - High Probability",
-      "Booked Profit Early",
-      "Ignored Stop Loss",
-    ]);
-
-    const customOnes = lessons.filter((item) => !defaultSet.has(item));
-    localStorage.setItem("customLessons", JSON.stringify(customOnes));
+    localStorage.setItem("customLessons", JSON.stringify(lessons));
   }, [lessons]);
 
   const addLesson = () => {
@@ -143,24 +129,6 @@ export default function LessonsSidebar() {
   };
 
   const removeLesson = (valueToRemove: string) => {
-    const defaultLessons = [
-      "Over Trading",
-      "Fear of Missing Out (FOMO)",
-      "Revenge Trading",
-      "Cut Losses Early",
-      "Follow Risk Management",
-      "Patience - Wait for Setup",
-      "Disciplined Entry",
-      "Best Setup - High Probability",
-      "Booked Profit Early",
-      "Ignored Stop Loss",
-    ];
-
-    if (defaultLessons.includes(valueToRemove)) {
-      showToast(t("sidebar.alert.defaultLesson"), "warning");
-      return;
-    }
-
     setLessons((prev) => prev.filter((item) => item !== valueToRemove));
   };
 
@@ -189,25 +157,12 @@ export default function LessonsSidebar() {
       {lessons.map((item) => (
         <div key={item} style={{ position: "relative" }}>
           <Item value={item} />
-          {![
-            "Over Trading",
-            "Fear of Missing Out (FOMO)",
-            "Revenge Trading",
-            "Cut Losses Early",
-            "Follow Risk Management",
-            "Patience - Wait for Setup",
-            "Disciplined Entry",
-            "Best Setup - High Probability",
-            "Booked Profit Early",
-            "Ignored Stop Loss",
-          ].includes(item) && (
-            <button
-              onClick={() => removeLesson(item)}
-              className="sidebar-remove"
-            >
-              ×
-            </button>
-          )}
+          <button
+            onClick={() => removeLesson(item)}
+            className="sidebar-remove"
+          >
+            ×
+          </button>
         </div>
       ))}
     </div>

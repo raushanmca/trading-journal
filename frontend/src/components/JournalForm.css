@@ -350,6 +350,42 @@ body {
   color: #334155;
 }
 
+.drop-zone--editable {
+  display: grid;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px;
+}
+
+.drop-zone__label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.drop-zone__input,
+.drop-zone__textarea {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.drop-zone__textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.drop-zone__input:focus,
+.drop-zone__textarea:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.08);
+}
+
 .drop-zone:hover,
 .drop-zone.drag-over {
   background: #ecfeff;

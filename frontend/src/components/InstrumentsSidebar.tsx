@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
 import { useLocalization } from "../localization/LocalizationProvider";
-import { showToast } from "../utils/toast";
 
 function Item({ value }: { value: string }) {
   const [{ isDragging }, drag] = useDrag(() => ({
@@ -43,17 +42,17 @@ export default function InstrumentsSidebar() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setInstruments((prev) => [...new Set([...prev, ...parsed])]); // avoid duplicates
+        if (Array.isArray(parsed)) {
+          setInstruments(parsed);
+        }
       } catch (e) {
         console.error("Failed to load instruments");
       }
     }
   }, []);
 
-  // Save to localStorage whenever instruments change
   useEffect(() => {
-    const customOnes = instruments.slice(5); // everything after default 5
-    localStorage.setItem("customInstruments", JSON.stringify(customOnes));
+    localStorage.setItem("customInstruments", JSON.stringify(instruments));
   }, [instruments]);
 
   const addInstrument = () => {
@@ -65,19 +64,6 @@ export default function InstrumentsSidebar() {
   };
 
   const removeInstrument = (valueToRemove: string) => {
-    // Prevent removing default 5 instruments
-    const defaultInstruments = [
-      "NIFTY",
-      "BANKNIFTY",
-      "RELIANCE",
-      "HDFCBANK",
-      "TCS",
-    ];
-    if (defaultInstruments.includes(valueToRemove)) {
-      showToast(t("sidebar.alert.defaultInstrument"), "warning");
-      return;
-    }
-
     setInstruments((prev) => prev.filter((item) => item !== valueToRemove));
   };
 
@@ -107,17 +93,12 @@ export default function InstrumentsSidebar() {
       {instruments.map((item) => (
         <div key={item} style={{ position: "relative" }}>
           <Item value={item} />
-          {/* Remove button for custom instruments only */}
-          {!["NIFTY", "BANKNIFTY", "RELIANCE", "HDFCBANK", "TCS"].includes(
-            item,
-          ) && (
-            <button
-              onClick={() => removeInstrument(item)}
-              className="sidebar-remove"
-            >
-              ×
-            </button>
-          )}
+          <button
+            onClick={() => removeInstrument(item)}
+            className="sidebar-remove"
+          >
+            ×
+          </button>
         </div>
       ))}
     </div>

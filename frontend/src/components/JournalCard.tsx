@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDrop } from "react-dnd";
 import axios from "axios";
 import { getAuthHeaders } from "../utils/auth";
@@ -31,6 +31,23 @@ export default function JournalCard() {
   const [isInstrumentOver, setIsInstrumentOver] = useState(false);
   const [isLessonOver, setIsLessonOver] = useState(false);
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    const syncTouchMode = () => {
+      setIsTouchDevice(
+        window.matchMedia("(pointer: coarse)").matches ||
+          navigator.maxTouchPoints > 0,
+      );
+    };
+
+    syncTouchMode();
+    window.addEventListener("resize", syncTouchMode);
+
+    return () => {
+      window.removeEventListener("resize", syncTouchMode);
+    };
+  }, []);
 
   // Drop Instrument
   const [, dropInstrument] = useDrop({
@@ -137,9 +154,28 @@ export default function JournalCard() {
 
       <div
         ref={dropInstrument}
-        className={`drop-zone ${isInstrumentOver ? "drag-over" : ""}`}
+        className={`drop-zone ${isInstrumentOver ? "drag-over" : ""}${
+          isTouchDevice ? " drop-zone--editable" : ""
+        }`}
       >
-        {form.instrument ? form.instrument : t("journal.instrumentDrop")}
+        {isTouchDevice ? (
+          <>
+            <div className="drop-zone__label">{t("journal.instrumentDrop")}</div>
+            <input
+              type="text"
+              value={form.instrument}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, instrument: e.target.value }))
+              }
+              placeholder={t("journal.instrumentMobileHint")}
+              className="drop-zone__input"
+            />
+          </>
+        ) : form.instrument ? (
+          form.instrument
+        ) : (
+          t("journal.instrumentDrop")
+        )}
       </div>
 
       <input
@@ -206,11 +242,27 @@ export default function JournalCard() {
       {/* Lessons Drop Zone */}
       <div
         ref={dropLesson}
-        className={`drop-zone ${isLessonOver ? "drag-over" : ""}`}
+        className={`drop-zone ${isLessonOver ? "drag-over" : ""}${
+          isTouchDevice ? " drop-zone--editable" : ""
+        }`}
       >
-        {form.mistakes
-          ? form.mistakes
-          : t("journal.lessonDrop")}
+        {isTouchDevice ? (
+          <>
+            <div className="drop-zone__label">{t("journal.lessonDrop")}</div>
+            <textarea
+              value={form.mistakes}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, mistakes: e.target.value }))
+              }
+              placeholder={t("journal.lessonMobileHint")}
+              className="drop-zone__textarea"
+            />
+          </>
+        ) : form.mistakes ? (
+          form.mistakes
+        ) : (
+          t("journal.lessonDrop")
+        )}
       </div>
 
       <textarea
