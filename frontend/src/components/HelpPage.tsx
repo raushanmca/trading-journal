@@ -40,6 +40,17 @@ export default function HelpPage() {
             <li>{t("help.userAdmin")}</li>
           </ul>
         </article>
+
+        <article className="info-page__panel">
+          <span className="info-page__chip">{t("help.newsChip")}</span>
+          <h2>{t("help.newsTitle")}</h2>
+          <ul className="info-page__list">
+            <li>{t("help.newsPointOne")}</li>
+            <li>{t("help.newsPointTwo")}</li>
+            <li>{t("help.newsPointThree")}</li>
+            <li>{t("help.newsPointFour")}</li>
+          </ul>
+        </article>
       </section>
 
       <section className="info-page__panel info-page__panel--wide">
