@@ -97,8 +97,18 @@ export default function JournalForm() {
   } | null>(null);
   const [isMarketWatchLoading, setIsMarketWatchLoading] = useState(false);
   const [marketWatchError, setMarketWatchError] = useState("");
-  const [hasAttemptedMarketWatchLoad, setHasAttemptedMarketWatchLoad] =
-    useState(false);
+  const [marketWatchReloadKey, setMarketWatchReloadKey] = useState(0);
+  const marketWatchSections = Array.isArray(marketWatch?.sections)
+    ? marketWatch.sections
+    : [];
+  const marketWatchInstruments = Array.isArray(marketWatch?.instruments)
+    ? marketWatch.instruments
+    : [];
+  const marketWatchWatchpoints = Array.isArray(marketWatch?.watchpoints)
+    ? marketWatch.watchpoints
+    : [];
+  const hasMarketWatchContent =
+    marketWatchSections.length > 0 || marketWatchInstruments.length > 0;
 
   useEffect(() => {
     const storageKey = getUserStorageKey("journal-layout");
@@ -163,21 +173,16 @@ export default function JournalForm() {
   }, [isResetModalOpen, isResettingJournalData]);
 
   useEffect(() => {
-    if (
-      !isMarketWatchOpen ||
-      marketWatch ||
-      isMarketWatchLoading ||
-      hasAttemptedMarketWatchLoad
-    ) {
+    if (!isMarketWatchOpen || marketWatch || isMarketWatchLoading) {
       return;
     }
 
     let ignore = false;
+    const loadFailedMessage = t("marketWatch.loadFailed");
 
     const loadMarketWatch = async () => {
       setIsMarketWatchLoading(true);
       setMarketWatchError("");
-      setHasAttemptedMarketWatchLoad(true);
 
       try {
         const { data } = await axios.get(`${BASE_URL}/api/market-watch`, {
@@ -186,13 +191,19 @@ export default function JournalForm() {
         });
 
         if (!ignore) {
-          setMarketWatch(data);
+          setMarketWatch({
+            sections: Array.isArray(data?.sections) ? data.sections : [],
+            instruments: Array.isArray(data?.instruments) ? data.instruments : [],
+            watchpoints: Array.isArray(data?.watchpoints) ? data.watchpoints : [],
+            fetchedAt:
+              typeof data?.fetchedAt === "string" ? data.fetchedAt : "",
+          });
         }
       } catch (error) {
         if (!ignore) {
           const message = axios.isAxiosError(error)
-            ? error.response?.data?.message || t("marketWatch.loadFailed")
-            : t("marketWatch.loadFailed");
+            ? error.response?.data?.message || loadFailedMessage
+            : loadFailedMessage;
           setMarketWatchError(message);
         }
       } finally {
@@ -209,17 +220,15 @@ export default function JournalForm() {
     };
   }, [
     authToken,
-    hasAttemptedMarketWatchLoad,
-    isMarketWatchLoading,
     isMarketWatchOpen,
-    marketWatch,
-    t,
+    marketWatchReloadKey,
   ]);
 
   const retryMarketWatch = () => {
     setMarketWatch(null);
     setMarketWatchError("");
-    setHasAttemptedMarketWatchLoad(false);
+    setIsMarketWatchLoading(false);
+    setMarketWatchReloadKey((value) => value + 1);
   };
 
   const moveCard = (from: number, to: number) => {
@@ -305,11 +314,11 @@ export default function JournalForm() {
                 {t("marketWatch.retry")}
               </button>
             </div>
-          ) : marketWatch?.sections?.length || marketWatch?.instruments?.length ? (
+          ) : hasMarketWatchContent ? (
             <div className="market-watch-sample__content">
-              {marketWatch.sections?.length ? (
+              {marketWatchSections.length ? (
                 <div className="market-watch-sample__grid">
-                  {marketWatch.sections.map((section, index) => (
+                  {marketWatchSections.map((section, index) => (
                     <article key={section.id} className="market-watch-sample__card">
                       <div className="market-watch-sample__card-top">
                         <strong>{section.label}</strong>
@@ -349,13 +358,13 @@ export default function JournalForm() {
               ) : null}
 
               <div className="market-watch-sample__aside">
-                {marketWatch.watchpoints?.length ? (
+                {marketWatchWatchpoints.length ? (
                   <article className="market-watch-sample__card market-watch-sample__card--aside">
                     <div className="market-watch-sample__card-top">
                       <strong>{t("marketWatch.watchpointsTitle")}</strong>
                     </div>
                     <ul className="market-watch-sample__list">
-                      {marketWatch.watchpoints.map((point) => (
+                      {marketWatchWatchpoints.map((point) => (
                         <li key={point} className="market-watch-sample__watchpoint">
                           {point}
                         </li>
@@ -364,13 +373,13 @@ export default function JournalForm() {
                   </article>
                 ) : null}
 
-                {marketWatch.instruments?.length ? (
+                {marketWatchInstruments.length ? (
                   <article className="market-watch-sample__card market-watch-sample__card--aside">
                     <div className="market-watch-sample__card-top">
                       <strong>{t("marketWatch.instrumentTitle")}</strong>
                     </div>
                     <ul className="market-watch-sample__list">
-                      {marketWatch.instruments.map((entry) => (
+                      {marketWatchInstruments.map((entry) => (
                         <li key={entry.instrument} className="market-watch-sample__instrument">
                           <span>{entry.instrument}</span>
                           <small>{entry.headlines.length} headlines</small>
