@@ -3,7 +3,7 @@ const { getRecentJournalEntries } = require("../journal/journalService");
 
 const GOOGLE_NEWS_RSS_BASE_URL =
   "https://news.google.com/rss/search?hl=en-IN&gl=IN&ceid=IN:en&q=";
-const RECENT_NEWS_MAX_AGE_MS = 1000 * 60 * 60 * 72;
+const RECENT_NEWS_MAX_AGE_MS = 1000 * 60 * 60 * 24;
 
 const INSTRUMENT_QUERY_ALIASES = {
   NIFTY: ["NIFTY 50 NSE", "NIFTY index India"],
@@ -137,7 +137,11 @@ function parseRssItems(xml) {
 }
 
 async function fetchNewsByQuery(query, instrument, maxItems = 3) {
-  const queryVariants = [`${query} when:1d`, `${query} when:3d`, query];
+  const queryVariants = [
+    `${query} latest when:1d`,
+    `${query} today when:1d`,
+    `${query} live when:1d`,
+  ];
   const failures = [];
 
   for (const queryVariant of queryVariants) {
@@ -162,9 +166,9 @@ async function fetchNewsByQuery(query, instrument, maxItems = 3) {
         (left, right) =>
           getPubDateTimestamp(right.pubDate) - getPubDateTimestamp(left.pubDate),
       );
-      const recentItems = sortedItems.filter((item) => isRecentHeadline(item));
-      const items =
-        recentItems.length > 0 ? recentItems.slice(0, maxItems) : sortedItems.slice(0, maxItems);
+      const items = sortedItems
+        .filter((item) => isRecentHeadline(item))
+        .slice(0, maxItems);
 
       if (items.length > 0) {
         return {
@@ -181,17 +185,15 @@ async function fetchNewsByQuery(query, instrument, maxItems = 3) {
     }
   }
 
-  throw new Error(
-    `Failed to fetch news for ${instrument}: ${failures.join(" | ") || "no headlines found"}`,
-  );
+  throw new Error(failures.join(" | ") || `No fresh headlines found for ${instrument}`);
 }
 
 async function fetchInstrumentNews(instrument, maxItems = 3) {
   const queries = [
     ...(INSTRUMENT_QUERY_ALIASES[instrument] || []),
-    `${instrument} NSE stock`,
-    `${instrument} stock India`,
-    `${instrument} market news`,
+    `${instrument} NSE stock latest news`,
+    `${instrument} stock India latest news`,
+    `${instrument} market news today`,
   ];
 
   const seenLinks = new Set();
@@ -234,9 +236,9 @@ async function fetchInstrumentNews(instrument, maxItems = 3) {
 
 async function fetchFallbackMarketNews(maxItems = 3) {
   const fallbackQueries = [
-    "Indian stock market tomorrow",
-    "NSE market outlook",
-    "Sensex Nifty tomorrow market news",
+    "Indian stock market latest news today",
+    "NSE market outlook today",
+    "Sensex Nifty latest market news today",
   ];
 
   const seenLinks = new Set();
