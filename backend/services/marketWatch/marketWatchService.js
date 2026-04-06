@@ -36,6 +36,15 @@ const MARKET_BRIEF_SECTIONS = [
     ],
   },
   {
+    id: "asia-markets",
+    label: "Asia Market Update",
+    queries: [
+      "Asian markets today Nikkei Hang Seng Kospi market update",
+      "Asia stock market today market summary",
+      "Nikkei Hang Seng Asia market outlook today",
+    ],
+  },
+  {
     id: "gift-nifty",
     label: "GIFT NIFTY",
     queries: [
@@ -291,6 +300,10 @@ function buildWatchpoints(sections, instruments) {
 
   if (sectionIds.has("us-close")) {
     watchpoints.push("Use the US close as context, not a guaranteed next-day signal.");
+  }
+
+  if (sectionIds.has("asia-markets")) {
+    watchpoints.push("Check Asian market tone to confirm or challenge your India bias.");
   }
 
   if (sectionIds.has("gift-nifty")) {
