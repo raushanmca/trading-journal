@@ -171,7 +171,7 @@ export default function JournalHero({
             className="journal-page-hero__market-watch"
             onClick={() => onToggleMarketWatch?.()}
           >
-            {isMarketWatchOpen ? "Hide Market Watch" : "Market Watch"}
+            {isMarketWatchOpen ? "Hide Market" : "Market"}
           </button>
         </div>
         <div className="journal-page-hero__content">

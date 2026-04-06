@@ -49,6 +49,7 @@ export default function HelpPage() {
             <li>{t("help.newsPointTwo")}</li>
             <li>{t("help.newsPointThree")}</li>
             <li>{t("help.newsPointFour")}</li>
+            <li>{t("help.newsPointFive")}</li>
           </ul>
         </article>
       </section>

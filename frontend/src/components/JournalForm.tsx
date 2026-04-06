@@ -41,6 +41,13 @@ interface DraggableCardProps {
   moveCard: (from: number, to: number) => void;
 }
 
+interface DraggableMarketSectionProps {
+  children: ReactNode;
+  id: string;
+  index: number;
+  moveSection: (from: number, to: number) => void;
+}
+
 function DraggableCard({ index, moveCard, children }: DraggableCardProps) {
   const { t } = useLocalization();
   const [, drag] = useDrag({
@@ -65,13 +72,54 @@ function DraggableCard({ index, moveCard, children }: DraggableCardProps) {
   );
 }
 
+function DraggableMarketSection({
+  children,
+  id,
+  index,
+  moveSection,
+}: DraggableMarketSectionProps) {
+  const [, drag] = useDrag({
+    type: "MARKET_SECTION",
+    item: { id, index },
+  });
+
+  const [, drop] = useDrop({
+    accept: "MARKET_SECTION",
+    hover: (item: { id: string; index: number }) => {
+      if (item.index === index) {
+        return;
+      }
+
+      moveSection(item.index, index);
+      item.index = index;
+    },
+  });
+
+  return (
+    <article
+      ref={(node) => drag(drop(node))}
+      className="market-watch-sample__card market-watch-sample__card--draggable"
+    >
+      {children}
+    </article>
+  );
+}
+
 export default function JournalForm() {
   const { t } = useLocalization();
   const authToken = getAuthToken();
   const [layout, setLayout] = useState(() => buildLayout());
   const [isResettingJournalData, setIsResettingJournalData] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [isMarketWatchOpen, setIsMarketWatchOpen] = useState(false);
+  const [isMarketWatchOpen, setIsMarketWatchOpen] = useState(() => {
+    const storageKey = getUserStorageKey("market-view-open");
+
+    if (!storageKey) {
+      return false;
+    }
+
+    return localStorage.getItem(storageKey) === "true";
+  });
   const [marketWatch, setMarketWatch] = useState<{
     sections: Array<{
       id: string;
@@ -98,6 +146,7 @@ export default function JournalForm() {
   const [isMarketWatchLoading, setIsMarketWatchLoading] = useState(false);
   const [marketWatchError, setMarketWatchError] = useState("");
   const [marketWatchReloadKey, setMarketWatchReloadKey] = useState(0);
+  const [marketSectionOrder, setMarketSectionOrder] = useState<string[]>([]);
   const marketWatchSections = Array.isArray(marketWatch?.sections)
     ? marketWatch.sections
     : [];
@@ -109,6 +158,24 @@ export default function JournalForm() {
     : [];
   const hasMarketWatchContent =
     marketWatchSections.length > 0 || marketWatchInstruments.length > 0;
+  const orderedMarketWatchSections =
+    marketSectionOrder.length > 0
+      ? [
+          ...marketSectionOrder
+            .map((id) =>
+              marketWatchSections.find((section) => section.id === id),
+            )
+            .filter(
+              (
+                section,
+              ): section is NonNullable<typeof marketWatchSections[number]> =>
+                Boolean(section),
+            ),
+          ...marketWatchSections.filter(
+            (section) => !marketSectionOrder.includes(section.id),
+          ),
+        ]
+      : marketWatchSections;
 
   useEffect(() => {
     const storageKey = getUserStorageKey("journal-layout");
@@ -156,6 +223,72 @@ export default function JournalForm() {
       JSON.stringify(layout.map((item) => item.id)),
     );
   }, [layout]);
+
+  useEffect(() => {
+    const openStorageKey = getUserStorageKey("market-view-open");
+
+    if (!openStorageKey) {
+      return;
+    }
+
+    localStorage.setItem(openStorageKey, String(isMarketWatchOpen));
+  }, [isMarketWatchOpen]);
+
+  useEffect(() => {
+    const orderStorageKey = getUserStorageKey("market-section-order");
+
+    if (!orderStorageKey) {
+      setMarketSectionOrder([]);
+      return;
+    }
+
+    const savedOrder = localStorage.getItem(orderStorageKey);
+
+    if (!savedOrder) {
+      setMarketSectionOrder([]);
+      return;
+    }
+
+    try {
+      const parsedOrder = JSON.parse(savedOrder);
+      setMarketSectionOrder(Array.isArray(parsedOrder) ? parsedOrder : []);
+    } catch (error) {
+      console.error("Failed to parse saved market section order", error);
+      setMarketSectionOrder([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const orderStorageKey = getUserStorageKey("market-section-order");
+
+    if (!orderStorageKey || marketSectionOrder.length === 0) {
+      return;
+    }
+
+    localStorage.setItem(orderStorageKey, JSON.stringify(marketSectionOrder));
+  }, [marketSectionOrder]);
+
+  useEffect(() => {
+    if (marketWatchSections.length === 0) {
+      return;
+    }
+
+    setMarketSectionOrder((currentOrder) => {
+      const availableIds = marketWatchSections.map((section) => section.id);
+      const keptIds = currentOrder.filter((id) => availableIds.includes(id));
+      const missingIds = availableIds.filter((id) => !keptIds.includes(id));
+      const nextOrder = [...keptIds, ...missingIds];
+
+      if (
+        nextOrder.length === currentOrder.length &&
+        nextOrder.every((id, index) => id === currentOrder[index])
+      ) {
+        return currentOrder;
+      }
+
+      return nextOrder;
+    });
+  }, [marketWatchSections]);
 
   useEffect(() => {
     if (!isResetModalOpen) {
@@ -238,6 +371,15 @@ export default function JournalForm() {
     setLayout(updated);
   };
 
+  const moveMarketSection = (from: number, to: number) => {
+    setMarketSectionOrder((currentOrder) => {
+      const updated = [...currentOrder];
+      const [moved] = updated.splice(from, 1);
+      updated.splice(to, 0, moved);
+      return updated;
+    });
+  };
+
   const handleResetJournalData = async () => {
     setIsResetModalOpen(true);
   };
@@ -294,9 +436,8 @@ export default function JournalForm() {
               <p>{t("marketWatch.description")}</p>
             </div>
             <div className="market-watch-sample__badge">
-              {marketWatch?.fetchedAt
-                ? new Date(marketWatch.fetchedAt).toLocaleTimeString()
-                : t("marketWatch.liveLabel")}
+              <span className="market-watch-sample__badge-dot" aria-hidden="true" />
+              {t("marketWatch.liveLabel")}
             </div>
           </div>
           {isMarketWatchLoading ? (
@@ -318,10 +459,18 @@ export default function JournalForm() {
             <div className="market-watch-sample__content">
               {marketWatchSections.length ? (
                 <div className="market-watch-sample__grid">
-                  {marketWatchSections.map((section, index) => (
-                    <article key={section.id} className="market-watch-sample__card">
+                  {orderedMarketWatchSections.map((section, index) => (
+                    <DraggableMarketSection
+                      key={section.id}
+                      id={section.id}
+                      index={index}
+                      moveSection={moveMarketSection}
+                    >
                       <div className="market-watch-sample__card-top">
-                        <strong>{section.label}</strong>
+                        <div className="market-watch-sample__card-heading">
+                          <span className="market-watch-sample__drag">⋮⋮</span>
+                          <strong>{section.label}</strong>
+                        </div>
                         <span
                           className={`market-watch-sample__impact ${
                             index < 2
@@ -352,7 +501,7 @@ export default function JournalForm() {
                           </li>
                         ))}
                       </ul>
-                    </article>
+                    </DraggableMarketSection>
                   ))}
                 </div>
               ) : null}
