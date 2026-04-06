@@ -73,6 +73,16 @@ export default function JournalForm() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isMarketWatchOpen, setIsMarketWatchOpen] = useState(false);
   const [marketWatch, setMarketWatch] = useState<{
+    sections: Array<{
+      id: string;
+      label: string;
+      headlines: Array<{
+        title: string;
+        link: string;
+        pubDate: string;
+        source: string;
+      }>;
+    }>;
     instruments: Array<{
       instrument: string;
       headlines: Array<{
@@ -82,6 +92,7 @@ export default function JournalForm() {
         source: string;
       }>;
     }>;
+    watchpoints: string[];
     fetchedAt: string;
   } | null>(null);
   const [isMarketWatchLoading, setIsMarketWatchLoading] = useState(false);
@@ -270,11 +281,8 @@ export default function JournalForm() {
         <section className="market-watch-sample">
           <div className="market-watch-sample__header">
             <div>
-              <h2>Tomorrow Market Watch</h2>
-              <p>
-                Live headlines for your recent instruments to help you prepare
-                for the next trading session.
-              </p>
+              <h2>{t("marketWatch.title")}</h2>
+              <p>{t("marketWatch.description")}</p>
             </div>
             <div className="market-watch-sample__badge">
               {marketWatch?.fetchedAt
@@ -297,44 +305,81 @@ export default function JournalForm() {
                 {t("marketWatch.retry")}
               </button>
             </div>
-          ) : marketWatch?.instruments?.length ? (
-            <div className="market-watch-sample__grid">
-              {marketWatch.instruments.map((entry, index) => (
-                <article key={entry.instrument} className="market-watch-sample__card">
-                  <div className="market-watch-sample__card-top">
-                    <strong>{entry.instrument}</strong>
-                    <span
-                      className={`market-watch-sample__impact ${
-                        index === 0
-                          ? "market-watch-sample__impact--high"
-                          : "market-watch-sample__impact--medium"
-                      }`}
-                    >
-                      {index === 0
-                        ? t("marketWatch.priorityHigh")
-                        : t("marketWatch.priorityWatch")}
-                    </span>
-                  </div>
-                  <ul className="market-watch-sample__list">
-                    {entry.headlines.map((headline) => (
-                      <li key={headline.link}>
-                        <a
-                          href={headline.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="market-watch-sample__link"
+          ) : marketWatch?.sections?.length || marketWatch?.instruments?.length ? (
+            <div className="market-watch-sample__content">
+              {marketWatch.sections?.length ? (
+                <div className="market-watch-sample__grid">
+                  {marketWatch.sections.map((section, index) => (
+                    <article key={section.id} className="market-watch-sample__card">
+                      <div className="market-watch-sample__card-top">
+                        <strong>{section.label}</strong>
+                        <span
+                          className={`market-watch-sample__impact ${
+                            index < 2
+                              ? "market-watch-sample__impact--high"
+                              : "market-watch-sample__impact--medium"
+                          }`}
                         >
-                          {headline.title}
-                        </a>
-                        <div className="market-watch-sample__meta">
-                          {headline.source}
-                          {headline.pubDate ? ` • ${headline.pubDate}` : ""}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
+                          {index < 2
+                            ? t("marketWatch.priorityHigh")
+                            : t("marketWatch.priorityWatch")}
+                        </span>
+                      </div>
+                      <ul className="market-watch-sample__list">
+                        {section.headlines.map((headline) => (
+                          <li key={headline.link}>
+                            <a
+                              href={headline.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="market-watch-sample__link"
+                            >
+                              {headline.title}
+                            </a>
+                            <div className="market-watch-sample__meta">
+                              {headline.source}
+                              {headline.pubDate ? ` • ${headline.pubDate}` : ""}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="market-watch-sample__aside">
+                {marketWatch.watchpoints?.length ? (
+                  <article className="market-watch-sample__card market-watch-sample__card--aside">
+                    <div className="market-watch-sample__card-top">
+                      <strong>{t("marketWatch.watchpointsTitle")}</strong>
+                    </div>
+                    <ul className="market-watch-sample__list">
+                      {marketWatch.watchpoints.map((point) => (
+                        <li key={point} className="market-watch-sample__watchpoint">
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                ) : null}
+
+                {marketWatch.instruments?.length ? (
+                  <article className="market-watch-sample__card market-watch-sample__card--aside">
+                    <div className="market-watch-sample__card-top">
+                      <strong>{t("marketWatch.instrumentTitle")}</strong>
+                    </div>
+                    <ul className="market-watch-sample__list">
+                      {marketWatch.instruments.map((entry) => (
+                        <li key={entry.instrument} className="market-watch-sample__instrument">
+                          <span>{entry.instrument}</span>
+                          <small>{entry.headlines.length} headlines</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                ) : null}
+              </div>
             </div>
           ) : (
             <div className="market-watch-sample__empty">
