@@ -105,11 +105,15 @@ function AnalogClock({
 interface JournalHeroProps {
   onResetJournalData: () => Promise<void> | void;
   isResettingJournalData?: boolean;
+  isMarketWatchOpen?: boolean;
+  onToggleMarketWatch?: () => void;
 }
 
 export default function JournalHero({
   onResetJournalData,
   isResettingJournalData = false,
+  isMarketWatchOpen = false,
+  onToggleMarketWatch,
 }: JournalHeroProps) {
   const { locale, t } = useLocalization();
   const storedUser = getStoredUser();
@@ -160,7 +164,18 @@ export default function JournalHero({
   return (
     <section className="journal-page-hero">
       <div>
-        <div className="journal-page-hero__eyebrow">{t("journal.pageEyebrow")}</div>
+        <div className="journal-page-hero__eyebrow-row">
+          <div className="journal-page-hero__eyebrow">{t("journal.pageEyebrow")}</div>
+          <button
+            type="button"
+            className="journal-page-hero__market-watch"
+            onClick={() => onToggleMarketWatch?.()}
+          >
+            {isMarketWatchOpen
+              ? "Hide Tomorrow Market Watch"
+              : "Tomorrow Market Watch"}
+          </button>
+        </div>
         <div className="journal-page-hero__content">
           <div className="journal-page-hero__title-group">
             <h1>{t("journal.pageTitle")}</h1>

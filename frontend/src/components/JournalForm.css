@@ -23,7 +23,6 @@ body {
 
 .journal-page-hero__eyebrow {
   display: inline-flex;
-  margin-bottom: 10px;
   padding: 7px 11px;
   border-radius: 999px;
   background: rgba(15, 118, 110, 0.1);
@@ -32,6 +31,27 @@ body {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.journal-page-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.journal-page-hero__market-watch {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(14, 116, 144, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #0f766e;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .journal-page-hero__content {
@@ -270,6 +290,149 @@ body {
   background: radial-gradient(circle at 35% 35%, #ffffff, #0f172a 72%);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
   transform: translate(-50%, -50%);
+}
+
+.market-watch-sample {
+  margin-bottom: 22px;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(14, 116, 144, 0.12), transparent 30%),
+    rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.07);
+}
+
+.market-watch-sample__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.market-watch-sample__header h2 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+}
+
+.market-watch-sample__header p {
+  margin: 0;
+  color: #526072;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.market-watch-sample__badge {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.market-watch-sample__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.market-watch-sample__card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+}
+
+.market-watch-sample__card--note {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 247, 237, 0.96));
+}
+
+.market-watch-sample__card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.market-watch-sample__card-top strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.market-watch-sample__impact {
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.market-watch-sample__impact--medium {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.market-watch-sample__impact--high {
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;
+}
+
+.market-watch-sample__list {
+  margin: 0;
+  padding-left: 18px;
+  color: #475569;
+  line-height: 1.65;
+}
+
+.market-watch-sample__list li + li {
+  margin-top: 10px;
+}
+
+.market-watch-sample__link {
+  color: #0f172a;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.market-watch-sample__link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.market-watch-sample__meta {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.market-watch-sample__empty {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px dashed rgba(148, 163, 184, 0.36);
+  color: #526072;
+  display: grid;
+  gap: 12px;
+}
+
+.market-watch-sample__retry {
+  justify-self: flex-start;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(14, 116, 144, 0.16);
+  background: rgba(240, 249, 255, 0.92);
+  color: #0f766e;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .journal-form-container {
@@ -1183,6 +1346,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 1180px) {
+  .market-watch-sample__grid {
+    grid-template-columns: 1fr;
+  }
+
   .journal-form-container {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1196,6 +1363,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .journal-page-hero {
     padding: 18px;
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .market-watch-sample {
+    padding: 18px;
+  }
+
+  .market-watch-sample__header {
     flex-direction: column;
   }
 

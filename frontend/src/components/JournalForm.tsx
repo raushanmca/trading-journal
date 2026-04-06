@@ -7,7 +7,7 @@ import JournalCard from "./JournalCard";
 import LessonsSidebar from "./LessonsSidebar";
 import AIJournalChatbot from "./AIJournalChatbot";
 import JournalHero from "./journal/JournalHero";
-import { getAuthHeaders, getUserStorageKey } from "../utils/auth";
+import { getAuthHeaders, getAuthToken, getUserStorageKey } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
 import { showToast } from "../utils/toast";
 import { clearDashboardCache } from "../features/dashboard/dashboardCache";
@@ -67,9 +67,27 @@ function DraggableCard({ index, moveCard, children }: DraggableCardProps) {
 
 export default function JournalForm() {
   const { t } = useLocalization();
+  const authToken = getAuthToken();
   const [layout, setLayout] = useState(() => buildLayout());
   const [isResettingJournalData, setIsResettingJournalData] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isMarketWatchOpen, setIsMarketWatchOpen] = useState(false);
+  const [marketWatch, setMarketWatch] = useState<{
+    instruments: Array<{
+      instrument: string;
+      headlines: Array<{
+        title: string;
+        link: string;
+        pubDate: string;
+        source: string;
+      }>;
+    }>;
+    fetchedAt: string;
+  } | null>(null);
+  const [isMarketWatchLoading, setIsMarketWatchLoading] = useState(false);
+  const [marketWatchError, setMarketWatchError] = useState("");
+  const [hasAttemptedMarketWatchLoad, setHasAttemptedMarketWatchLoad] =
+    useState(false);
 
   useEffect(() => {
     const storageKey = getUserStorageKey("journal-layout");
@@ -133,6 +151,65 @@ export default function JournalForm() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isResetModalOpen, isResettingJournalData]);
 
+  useEffect(() => {
+    if (
+      !isMarketWatchOpen ||
+      marketWatch ||
+      isMarketWatchLoading ||
+      hasAttemptedMarketWatchLoad
+    ) {
+      return;
+    }
+
+    let ignore = false;
+
+    const loadMarketWatch = async () => {
+      setIsMarketWatchLoading(true);
+      setMarketWatchError("");
+      setHasAttemptedMarketWatchLoad(true);
+
+      try {
+        const { data } = await axios.get(`${BASE_URL}/api/market-watch`, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        });
+
+        if (!ignore) {
+          setMarketWatch(data);
+        }
+      } catch (error) {
+        if (!ignore) {
+          const message = axios.isAxiosError(error)
+            ? error.response?.data?.message || t("marketWatch.loadFailed")
+            : t("marketWatch.loadFailed");
+          setMarketWatchError(message);
+        }
+      } finally {
+        if (!ignore) {
+          setIsMarketWatchLoading(false);
+        }
+      }
+    };
+
+    void loadMarketWatch();
+
+    return () => {
+      ignore = true;
+    };
+  }, [
+    authToken,
+    hasAttemptedMarketWatchLoad,
+    isMarketWatchLoading,
+    isMarketWatchOpen,
+    marketWatch,
+    t,
+  ]);
+
+  const retryMarketWatch = () => {
+    setMarketWatch(null);
+    setMarketWatchError("");
+    setHasAttemptedMarketWatchLoad(false);
+  };
+
   const moveCard = (from: number, to: number) => {
     const updated = [...layout];
     const [moved] = updated.splice(from, 1);
@@ -185,7 +262,86 @@ export default function JournalForm() {
       <JournalHero
         onResetJournalData={handleResetJournalData}
         isResettingJournalData={isResettingJournalData}
+        isMarketWatchOpen={isMarketWatchOpen}
+        onToggleMarketWatch={() => setIsMarketWatchOpen((open) => !open)}
       />
+      {isMarketWatchOpen ? (
+        <section className="market-watch-sample">
+          <div className="market-watch-sample__header">
+            <div>
+              <h2>Tomorrow Market Watch</h2>
+              <p>
+                Live headlines for your recent instruments to help you prepare
+                for the next trading session.
+              </p>
+            </div>
+            <div className="market-watch-sample__badge">
+              {marketWatch?.fetchedAt
+                ? new Date(marketWatch.fetchedAt).toLocaleTimeString()
+                : t("marketWatch.liveLabel")}
+            </div>
+          </div>
+          {isMarketWatchLoading ? (
+            <div className="market-watch-sample__empty">
+              {t("marketWatch.loading")}
+            </div>
+          ) : marketWatchError ? (
+            <div className="market-watch-sample__empty">
+              <div>{marketWatchError}</div>
+              <button
+                type="button"
+                className="market-watch-sample__retry"
+                onClick={retryMarketWatch}
+              >
+                {t("marketWatch.retry")}
+              </button>
+            </div>
+          ) : marketWatch?.instruments?.length ? (
+            <div className="market-watch-sample__grid">
+              {marketWatch.instruments.map((entry, index) => (
+                <article key={entry.instrument} className="market-watch-sample__card">
+                  <div className="market-watch-sample__card-top">
+                    <strong>{entry.instrument}</strong>
+                    <span
+                      className={`market-watch-sample__impact ${
+                        index === 0
+                          ? "market-watch-sample__impact--high"
+                          : "market-watch-sample__impact--medium"
+                      }`}
+                    >
+                      {index === 0
+                        ? t("marketWatch.priorityHigh")
+                        : t("marketWatch.priorityWatch")}
+                    </span>
+                  </div>
+                  <ul className="market-watch-sample__list">
+                    {entry.headlines.map((headline) => (
+                      <li key={headline.link}>
+                        <a
+                          href={headline.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="market-watch-sample__link"
+                        >
+                          {headline.title}
+                        </a>
+                        <div className="market-watch-sample__meta">
+                          {headline.source}
+                          {headline.pubDate ? ` • ${headline.pubDate}` : ""}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="market-watch-sample__empty">
+              {t("marketWatch.empty")}
+            </div>
+          )}
+        </section>
+      ) : null}
       <div className="journal-form-container">
         {layout.map((item, index) => (
           <DraggableCard key={item.id} index={index} moveCard={moveCard}>
