@@ -3,6 +3,7 @@ const { getRecentJournalEntries } = require("../journal/journalService");
 
 const GOOGLE_NEWS_RSS_BASE_URL =
   "https://news.google.com/rss/search?hl=en-IN&gl=IN&ceid=IN:en&q=";
+const RECENT_NEWS_MAX_AGE_MS = 1000 * 60 * 60 * 72;
 
 const INSTRUMENT_QUERY_ALIASES = {
   NIFTY: ["NIFTY 50 NSE", "NIFTY index India"],
@@ -102,6 +103,21 @@ function buildNewsQuery(instrument) {
   return encodeURIComponent(instrument);
 }
 
+function getPubDateTimestamp(pubDate) {
+  const timestamp = Date.parse(pubDate);
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function isRecentHeadline(item, maxAgeMs = RECENT_NEWS_MAX_AGE_MS) {
+  const timestamp = getPubDateTimestamp(item.pubDate);
+
+  if (!timestamp) {
+    return false;
+  }
+
+  return Date.now() - timestamp <= maxAgeMs;
+}
+
 function parseRssItems(xml) {
   const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
 
@@ -121,35 +137,53 @@ function parseRssItems(xml) {
 }
 
 async function fetchNewsByQuery(query, instrument, maxItems = 3) {
-  let response;
+  const queryVariants = [`${query} when:1d`, `${query} when:3d`, query];
+  const failures = [];
 
-  try {
-    response = await axios.get(
-      `${GOOGLE_NEWS_RSS_BASE_URL}${buildNewsQuery(query)}`,
-      {
-        timeout: 8000,
-        responseType: "text",
-        headers: {
-          "User-Agent": "TradingJournalMarketWatch/1.0",
+  for (const queryVariant of queryVariants) {
+    try {
+      const response = await axios.get(
+        `${GOOGLE_NEWS_RSS_BASE_URL}${buildNewsQuery(queryVariant)}&nocache=${Date.now()}`,
+        {
+          timeout: 8000,
+          responseType: "text",
+          headers: {
+            "User-Agent": "TradingJournalMarketWatch/1.0",
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
         },
-      },
-    );
-  } catch (error) {
-    const status = error.response?.status;
-    const detail = status
-      ? `upstream status ${status}`
-      : error.code || error.message || "unknown upstream error";
-    throw new Error(`Failed to fetch news for ${instrument}: ${detail}`);
+      );
+
+      const parsedItems = parseRssItems(response.data).filter(
+        (item) => item.title && item.link,
+      );
+      const sortedItems = [...parsedItems].sort(
+        (left, right) =>
+          getPubDateTimestamp(right.pubDate) - getPubDateTimestamp(left.pubDate),
+      );
+      const recentItems = sortedItems.filter((item) => isRecentHeadline(item));
+      const items =
+        recentItems.length > 0 ? recentItems.slice(0, maxItems) : sortedItems.slice(0, maxItems);
+
+      if (items.length > 0) {
+        return {
+          instrument,
+          headlines: items,
+        };
+      }
+    } catch (error) {
+      const status = error.response?.status;
+      const detail = status
+        ? `upstream status ${status}`
+        : error.code || error.message || "unknown upstream error";
+      failures.push(`${queryVariant}: ${detail}`);
+    }
   }
 
-  const items = parseRssItems(response.data)
-    .filter((item) => item.title && item.link)
-    .slice(0, maxItems);
-
-  return {
-    instrument,
-    headlines: items,
-  };
+  throw new Error(
+    `Failed to fetch news for ${instrument}: ${failures.join(" | ") || "no headlines found"}`,
+  );
 }
 
 async function fetchInstrumentNews(instrument, maxItems = 3) {
