@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
 import { useLocalization } from "../localization/LocalizationProvider";
 
+const DEFAULT_INSTRUMENTS = [
+  "NIFTY",
+  "BANKNIFTY",
+  "RELIANCE",
+  "HDFCBANK",
+  "TCS",
+];
+
 function Item({ value }: { value: string }) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "instrument",
@@ -26,13 +34,7 @@ function Item({ value }: { value: string }) {
 
 export default function InstrumentsSidebar() {
   const { t } = useLocalization();
-  const [instruments, setInstruments] = useState<string[]>([
-    "NIFTY",
-    "BANKNIFTY",
-    "RELIANCE",
-    "HDFCBANK",
-    "TCS",
-  ]);
+  const [instruments, setInstruments] = useState<string[]>(DEFAULT_INSTRUMENTS);
 
   const [newInstrument, setNewInstrument] = useState("");
 
@@ -67,10 +69,21 @@ export default function InstrumentsSidebar() {
     setInstruments((prev) => prev.filter((item) => item !== valueToRemove));
   };
 
+  const restoreDefaults = () => {
+    setInstruments((prev) => [...new Set([...DEFAULT_INSTRUMENTS, ...prev])]);
+  };
+
   return (
     <div className="card">
       <div className="sidebar-header">
         <h3>{t("sidebar.instruments")}</h3>
+        <button
+          type="button"
+          onClick={restoreDefaults}
+          className="sidebar-header-action"
+        >
+          {t("sidebar.restoreDefaults")}
+        </button>
       </div>
 
       <p className="sidebar-description">{t("sidebar.instrumentsDescription")}</p>

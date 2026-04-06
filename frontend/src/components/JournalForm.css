@@ -948,7 +948,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .sidebar-header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
@@ -972,6 +972,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 12px;
   background: rgba(14, 116, 144, 0.12);
   color: #0f766e;
+}
+
+.sidebar-header-action {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #475569;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.sidebar-header-action:hover {
+  border-color: rgba(15, 118, 110, 0.2);
+  color: #0f766e;
+  background: rgba(240, 253, 250, 0.9);
 }
 
 .sidebar-confirm {

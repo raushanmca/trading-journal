@@ -2,6 +2,19 @@ import { useState, useEffect } from "react";
 import { useDrag } from "react-dnd";
 import { useLocalization } from "../localization/LocalizationProvider";
 
+const DEFAULT_LESSONS = [
+  "Over Trading",
+  "Fear of Missing Out (FOMO)",
+  "Revenge Trading",
+  "Cut Losses Early",
+  "Follow Risk Management",
+  "Patience - Wait for Setup",
+  "Disciplined Entry",
+  "Best Setup - High Probability",
+  "Booked Profit Early",
+  "Ignored Stop Loss",
+];
+
 function getSentimentColor(text: string): string {
   const lower = text.toLowerCase();
 
@@ -88,18 +101,7 @@ function Item({ value }: { value: string }) {
 
 export default function LessonsSidebar() {
   const { t } = useLocalization();
-  const [lessons, setLessons] = useState<string[]>([
-    "Over Trading",
-    "Fear of Missing Out (FOMO)",
-    "Revenge Trading",
-    "Cut Losses Early",
-    "Follow Risk Management",
-    "Patience - Wait for Setup",
-    "Disciplined Entry",
-    "Best Setup - High Probability",
-    "Booked Profit Early",
-    "Ignored Stop Loss",
-  ]);
+  const [lessons, setLessons] = useState<string[]>(DEFAULT_LESSONS);
 
   const [newLesson, setNewLesson] = useState("");
 
@@ -132,10 +134,21 @@ export default function LessonsSidebar() {
     setLessons((prev) => prev.filter((item) => item !== valueToRemove));
   };
 
+  const restoreDefaults = () => {
+    setLessons((prev) => [...new Set([...DEFAULT_LESSONS, ...prev])]);
+  };
+
   return (
     <div className="card">
       <div className="sidebar-header">
         <h3>{t("sidebar.lessons")}</h3>
+        <button
+          type="button"
+          onClick={restoreDefaults}
+          className="sidebar-header-action"
+        >
+          {t("sidebar.restoreDefaults")}
+        </button>
       </div>
 
       <p className="sidebar-description">{t("sidebar.lessonsDescription")}</p>
