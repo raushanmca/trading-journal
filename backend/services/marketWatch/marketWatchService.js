@@ -4,6 +4,13 @@ const { getRecentJournalEntries } = require("../journal/journalService");
 const GOOGLE_NEWS_RSS_BASE_URL =
   "https://news.google.com/rss/search?hl=en-IN&gl=IN&ceid=IN:en&q=";
 const RECENT_NEWS_MAX_AGE_MS = 1000 * 60 * 60 * 24;
+const BLOCKED_NEWS_SOURCES = new Set([
+  "MSN",
+  "Yahoo",
+  "Yahoo Finance",
+  "AOL",
+  "NewsBreak",
+]);
 
 const INSTRUMENT_QUERY_ALIASES = {
   NIFTY: ["NIFTY 50 NSE", "NIFTY index India"],
@@ -118,6 +125,32 @@ function isRecentHeadline(item, maxAgeMs = RECENT_NEWS_MAX_AGE_MS) {
   return Date.now() - timestamp <= maxAgeMs;
 }
 
+function isBlockedSource(source) {
+  return BLOCKED_NEWS_SOURCES.has(String(source || "").trim());
+}
+
+function looksLikeStaleHeadline(item) {
+  const normalizedTitle = String(item.title || "").toLowerCase();
+
+  if (!normalizedTitle) {
+    return true;
+  }
+
+  if (isBlockedSource(item.source)) {
+    return true;
+  }
+
+  if (
+    /(?:\b\d+\s*(?:w|week|weeks|month|months)\b)|(?:story by)|(?:\bmin read\b)/i.test(
+      normalizedTitle,
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function parseRssItems(xml) {
   const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
 
@@ -160,7 +193,7 @@ async function fetchNewsByQuery(query, instrument, maxItems = 3) {
       );
 
       const parsedItems = parseRssItems(response.data).filter(
-        (item) => item.title && item.link,
+        (item) => item.title && item.link && !looksLikeStaleHeadline(item),
       );
       const sortedItems = [...parsedItems].sort(
         (left, right) =>
