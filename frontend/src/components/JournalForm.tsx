@@ -171,6 +171,7 @@ export default function JournalForm() {
       try {
         const { data } = await axios.get(`${BASE_URL}/api/market-watch`, {
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+          timeout: 12000,
         });
 
         if (!ignore) {
