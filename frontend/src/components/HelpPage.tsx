@@ -61,6 +61,10 @@ export default function HelpPage() {
             <h3>{t("help.faqThreeTitle")}</h3>
             <p>{t("help.faqThreeBody")}</p>
           </article>
+          <article className="info-page__faq-item">
+            <h3>{t("help.faqFourTitle")}</h3>
+            <p>{t("help.faqFourBody")}</p>
+          </article>
         </div>
       </section>
     </div>
