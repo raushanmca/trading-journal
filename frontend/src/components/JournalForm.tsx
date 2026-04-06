@@ -436,8 +436,20 @@ export default function JournalForm() {
               <p>{t("marketWatch.description")}</p>
             </div>
             <div className="market-watch-sample__badge">
-              <span className="market-watch-sample__badge-dot" aria-hidden="true" />
-              {t("marketWatch.liveLabel")}
+              <div className="market-watch-sample__badge-status">
+                <span className="market-watch-sample__badge-dot" aria-hidden="true" />
+                {t("marketWatch.liveLabel")}
+              </div>
+              <button
+                type="button"
+                className="market-watch-sample__refresh"
+                onClick={retryMarketWatch}
+                disabled={isMarketWatchLoading}
+              >
+                {isMarketWatchLoading
+                  ? t("marketWatch.refreshing")
+                  : t("marketWatch.refresh")}
+              </button>
             </div>
           </div>
           {isMarketWatchLoading ? (
