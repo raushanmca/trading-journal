@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { getAuthHeaders, getStoredUser, hasPremiumAccess } from "../utils/auth";
 import { getApiBaseUrl } from "../utils/api";
@@ -20,8 +20,13 @@ interface AssistantResponse {
   source?: string;
 }
 
+function normalizeMessage(value: string) {
+  return value.trim().toLowerCase();
+}
+
 export default function AIJournalChatbot() {
   const { t } = useLocalization();
+  const messagesRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(() => [
     {
@@ -74,6 +79,94 @@ export default function AIJournalChatbot() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isOpen || !messagesRef.current) {
+      return;
+    }
+
+    messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+  }, [isOpen, messages, isLoading, showConfirm]);
+
+  const getSupportReply = (message: string) => {
+    const normalized = normalizeMessage(message);
+
+    const hasAny = (keywords: string[]) =>
+      keywords.some((keyword) => normalized.includes(keyword));
+
+    const greetingKeywords = [
+      "hi",
+      "hello",
+      "hey",
+      "namaste",
+      "hii",
+      "good morning",
+      "good evening",
+      "good afternoon",
+    ];
+    const journalKeywords = [
+      "journal",
+      "how to journal",
+      "save trade",
+      "entry",
+      "log trade",
+      "जर्नल",
+      "एंट्री",
+      "ट्रेड सेव",
+    ];
+    const dashboardKeywords = [
+      "dashboard",
+      "report",
+      "analysis",
+      "review trades",
+      "डैशबोर्ड",
+      "एनालिसिस",
+      "रिव्यू",
+    ];
+    const aboutKeywords = [
+      "about",
+      "about us",
+      "who are you",
+      "contact",
+      "email",
+      "support email",
+      "हमारे बारे में",
+      "कॉन्टैक्ट",
+      "ईमेल",
+    ];
+    const helpKeywords = [
+      "help",
+      "how to use",
+      "how do i use",
+      "what can you do",
+      "app help",
+      "मदद",
+      "कैसे उपयोग",
+      "कैसे यूज",
+    ];
+
+    if (hasAny(aboutKeywords)) {
+      return t("ai.support.about");
+    }
+
+    if (hasAny(dashboardKeywords)) {
+      return t("ai.support.dashboard");
+    }
+
+    if (hasAny(journalKeywords)) {
+      return t("ai.support.journal");
+    }
+
+    if (hasAny(helpKeywords)) {
+      return t("ai.support.general");
+    }
+
+    if (hasAny(greetingKeywords)) {
+      return t("ai.support.greeting");
+    }
+
+    return null;
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -88,6 +181,18 @@ export default function AIJournalChatbot() {
     setIsLoading(true);
 
     try {
+      const supportReply = getSupportReply(userMessage);
+      if (supportReply) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant" as const,
+            content: supportReply,
+          },
+        ]);
+        return;
+      }
+
       if (!authHeaders.Authorization) {
         setMessages((prev) => [
           ...prev,
@@ -217,7 +322,7 @@ export default function AIJournalChatbot() {
             </button>
           </div>
 
-          <div className="ai-chat-widget__messages">
+          <div ref={messagesRef} className="ai-chat-widget__messages">
             {messages.map((msg, index) => (
               <div
                 key={index}

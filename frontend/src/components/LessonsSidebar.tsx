@@ -103,7 +103,6 @@ export default function LessonsSidebar() {
   ]);
 
   const [newLesson, setNewLesson] = useState("");
-  const [showInput, setShowInput] = useState(false);
 
   // Load from localStorage
   useEffect(() => {
@@ -139,9 +138,8 @@ export default function LessonsSidebar() {
     const trimmed = newLesson.trim();
     if (!trimmed || lessons.includes(trimmed)) return;
 
-    setLessons((prev) => [...prev, trimmed]);
+    setLessons((prev) => [trimmed, ...prev]);
     setNewLesson("");
-    setShowInput(false);
   };
 
   const removeLesson = (valueToRemove: string) => {
@@ -170,12 +168,23 @@ export default function LessonsSidebar() {
     <div className="card">
       <div className="sidebar-header">
         <h3>{t("sidebar.lessons")}</h3>
-        <button onClick={() => setShowInput(!showInput)} className="sidebar-action">
-          {t("sidebar.add")}
-        </button>
       </div>
 
       <p className="sidebar-description">{t("sidebar.lessonsDescription")}</p>
+
+      <div className="sidebar-input-row">
+        <input
+          type="text"
+          value={newLesson}
+          onChange={(e) => setNewLesson(e.target.value)}
+          placeholder={t("sidebar.lessonPlaceholder")}
+          className="sidebar-inline-input"
+          onKeyDown={(e) => e.key === "Enter" && addLesson()}
+        />
+        <button onClick={addLesson} className="sidebar-confirm">
+          {t("sidebar.addConfirm")}
+        </button>
+      </div>
 
       {lessons.map((item) => (
         <div key={item} style={{ position: "relative" }}>
@@ -201,23 +210,6 @@ export default function LessonsSidebar() {
           )}
         </div>
       ))}
-
-      {/* Add New Lesson */}
-      {showInput && (
-        <div className="sidebar-input-row">
-          <input
-            type="text"
-            value={newLesson}
-            onChange={(e) => setNewLesson(e.target.value)}
-            placeholder={t("sidebar.lessonPlaceholder")}
-            className="sidebar-inline-input"
-            onKeyPress={(e) => e.key === "Enter" && addLesson()}
-          />
-          <button onClick={addLesson} className="sidebar-confirm">
-            {t("sidebar.addConfirm")}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

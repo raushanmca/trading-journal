@@ -6,6 +6,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import JournalForm from "../../components/JournalForm";
 import Dashboard from "../../components/Dashboard";
 import Login from "../../components/Login";
+import AboutPage from "../../components/AboutPage";
+import HelpPage from "../../components/HelpPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import type { StoredUser } from "../../features/auth/types";
 
@@ -17,6 +19,8 @@ interface AppRoutesProps {
 export function AppRoutes({ isSignedIn, user }: AppRoutesProps) {
   return (
     <Routes>
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/help" element={<HelpPage />} />
       <Route
         path="/"
         element={

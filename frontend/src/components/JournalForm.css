@@ -912,7 +912,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .sidebar-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
@@ -939,16 +939,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .sidebar-confirm {
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #f59e0b, #ea580c);
   color: #fffef6;
+  font-size: 0.86rem;
+  line-height: 1;
+  white-space: nowrap;
+  align-self: stretch;
 }
 
 .sidebar-input-row {
   display: flex;
   gap: 8px;
   margin-top: 12px;
+  align-items: center;
 }
 
 .sidebar-inline-input {

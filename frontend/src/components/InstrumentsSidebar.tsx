@@ -36,7 +36,6 @@ export default function InstrumentsSidebar() {
   ]);
 
   const [newInstrument, setNewInstrument] = useState("");
-  const [showInput, setShowInput] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -61,9 +60,8 @@ export default function InstrumentsSidebar() {
     const trimmed = newInstrument.trim().toUpperCase();
     if (!trimmed || instruments.includes(trimmed)) return;
 
-    setInstruments((prev) => [...prev, trimmed]);
+    setInstruments((prev) => [trimmed, ...prev]);
     setNewInstrument("");
-    setShowInput(false);
   };
 
   const removeInstrument = (valueToRemove: string) => {
@@ -87,12 +85,23 @@ export default function InstrumentsSidebar() {
     <div className="card">
       <div className="sidebar-header">
         <h3>{t("sidebar.instruments")}</h3>
-        <button onClick={() => setShowInput(!showInput)} className="sidebar-action">
-          {t("sidebar.add")}
-        </button>
       </div>
 
       <p className="sidebar-description">{t("sidebar.instrumentsDescription")}</p>
+
+      <div className="sidebar-input-row">
+        <input
+          type="text"
+          value={newInstrument}
+          onChange={(e) => setNewInstrument(e.target.value)}
+          placeholder={t("sidebar.instrumentPlaceholder")}
+          className="sidebar-inline-input"
+          onKeyDown={(e) => e.key === "Enter" && addInstrument()}
+        />
+        <button onClick={addInstrument} className="sidebar-confirm">
+          {t("sidebar.addConfirm")}
+        </button>
+      </div>
 
       {/* Instruments List */}
       {instruments.map((item) => (
@@ -111,23 +120,6 @@ export default function InstrumentsSidebar() {
           )}
         </div>
       ))}
-
-      {/* Add New Instrument Input */}
-      {showInput && (
-        <div className="sidebar-input-row">
-          <input
-            type="text"
-            value={newInstrument}
-            onChange={(e) => setNewInstrument(e.target.value)}
-            placeholder={t("sidebar.instrumentPlaceholder")}
-            className="sidebar-inline-input"
-            onKeyPress={(e) => e.key === "Enter" && addInstrument()}
-          />
-          <button onClick={addInstrument} className="sidebar-confirm">
-            {t("sidebar.addConfirm")}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

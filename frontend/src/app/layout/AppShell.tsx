@@ -125,37 +125,55 @@ export function AppShell({
             </Link>
           </div>
 
-          {isSignedIn ? (
-            <nav className="app-shell__nav" aria-label="Primary">
-              <NavLink
-                to="/"
-                end
-                className={({ isActive }) =>
-                  `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
-                }
-              >
-                {t("nav.journal")}
-              </NavLink>
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) =>
-                  `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
-                }
-              >
-                {t("nav.dashboard")}
-              </NavLink>
-              {user?.email === "rshan45@gmail.com" && (
+          <nav className="app-shell__nav" aria-label="Primary">
+            {isSignedIn ? (
+              <>
                 <NavLink
-                  to="/admin/users"
+                  to="/"
+                  end
                   className={({ isActive }) =>
                     `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
                   }
                 >
-                  {t("nav.adminUsers")}
+                  {t("nav.journal")}
                 </NavLink>
-              )}
-            </nav>
-          ) : null}
+                <NavLink
+                  to="/dashboard"
+                  className={({ isActive }) =>
+                    `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+                  }
+                >
+                  {t("nav.dashboard")}
+                </NavLink>
+                {user?.email === "rshan45@gmail.com" ? (
+                  <NavLink
+                    to="/admin/users"
+                    className={({ isActive }) =>
+                      `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+                    }
+                  >
+                    {t("nav.adminUsers")}
+                  </NavLink>
+                ) : null}
+              </>
+            ) : null}
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+              }
+            >
+              {t("nav.about")}
+            </NavLink>
+            <NavLink
+              to="/help"
+              className={({ isActive }) =>
+                `app-shell__nav-link${isActive ? " app-shell__nav-link--active" : ""}`
+              }
+            >
+              {t("nav.help")}
+            </NavLink>
+          </nav>
 
           <div className="app-shell__controls">
             <label className="app-shell__locale">
@@ -224,6 +242,20 @@ export function AppShell({
                       className="app-shell__menu-link"
                     >
                       {t("nav.dashboard")}
+                    </Link>
+                    <Link
+                      to="/about"
+                      onClick={() => setIsAccountMenuOpen(false)}
+                      className="app-shell__menu-link"
+                    >
+                      {t("nav.about")}
+                    </Link>
+                    <Link
+                      to="/help"
+                      onClick={() => setIsAccountMenuOpen(false)}
+                      className="app-shell__menu-link"
+                    >
+                      {t("nav.help")}
                     </Link>
 
                     {!user?.isOwner && user?.membershipPlan !== "premium" ? (
