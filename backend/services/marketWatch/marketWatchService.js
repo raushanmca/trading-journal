@@ -57,6 +57,27 @@ const DIRECT_NEWS_FEEDS = [
   },
 ];
 
+const PUBLISHER_MARKET_PAGES = [
+  {
+    id: "et-markets-page",
+    label: "Economic Times",
+    url: "https://economictimes.indiatimes.com/markets",
+    origin: "https://economictimes.indiatimes.com",
+  },
+  {
+    id: "mint-markets-page",
+    label: "Mint",
+    url: "https://www.livemint.com/market",
+    origin: "https://www.livemint.com",
+  },
+  {
+    id: "bs-markets-page",
+    label: "Business Standard",
+    url: "https://www.business-standard.com/markets",
+    origin: "https://www.business-standard.com",
+  },
+];
+
 const INSTRUMENT_QUERY_ALIASES = {
   NIFTY: ["nifty", "nifty 50", "sensex"],
   BANKNIFTY: ["bank nifty", "banknifty", "nifty bank", "banking index"],
@@ -180,6 +201,78 @@ function parseRssItems(xml, fallbackSource) {
   });
 }
 
+function decodeHtmlText(value) {
+  return decodeXmlEntities(
+    String(value || "")
+      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1"),
+  );
+}
+
+function resolveArticleLink(link, origin) {
+  const rawLink = String(link || "").trim();
+
+  if (!rawLink) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(rawLink)) {
+    return rawLink;
+  }
+
+  if (rawLink.startsWith("//")) {
+    return `https:${rawLink}`;
+  }
+
+  if (rawLink.startsWith("/")) {
+    return `${origin}${rawLink}`;
+  }
+
+  return `${origin}/${rawLink}`;
+}
+
+function looksLikeArticleLink(link) {
+  return /\/(article|markets|market|stocks|news|economy|companies|topic)\b/i.test(link);
+}
+
+function parseHtmlItems(html, page) {
+  const anchorMatches = [
+    ...String(html || "").matchAll(/<a\b[^>]*href=(?:"([^"]+)"|'([^']+)')[^>]*>([\s\S]*?)<\/a>/gi),
+  ];
+
+  const items = anchorMatches.map((match) => {
+    const href = match[1] || match[2] || "";
+    const title = stripHtml(decodeHtmlText(match[3] || ""));
+    const link = resolveArticleLink(href, page.origin);
+
+    return {
+      title,
+      link,
+      pubDate: new Date().toISOString(),
+      source: page.label,
+    };
+  });
+
+  return items.filter((item) => {
+    if (!item.title || !item.link) {
+      return false;
+    }
+
+    if (item.title.length < 28 || item.title.length > 220) {
+      return false;
+    }
+
+    if (!looksLikeArticleLink(item.link)) {
+      return false;
+    }
+
+    if (/^(home|markets|market news|stock markets|read more|more|subscribe|sign in)$/i.test(item.title)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 async function fetchFeedItems(feed) {
   const response = await axios.get(`${feed.url}${feed.url.includes("?") ? "&" : "?"}nocache=${Date.now()}`, {
     timeout: FEED_TIMEOUT_MS,
@@ -211,6 +304,38 @@ async function fetchAllFeedItems() {
       feeds.push(result.value);
     } else {
       failures.push(result.reason?.message || "unknown feed failure");
+    }
+  }
+
+  return { feeds, failures };
+}
+
+async function fetchPageItems(page) {
+  const response = await axios.get(`${page.url}${page.url.includes("?") ? "&" : "?"}nocache=${Date.now()}`, {
+    timeout: FEED_TIMEOUT_MS,
+    responseType: "text",
+    headers: REQUEST_HEADERS,
+  });
+
+  return {
+    feed: page,
+    items: parseHtmlItems(response.data, page),
+  };
+}
+
+async function fetchAllPageItems() {
+  const results = await Promise.allSettled(
+    PUBLISHER_MARKET_PAGES.map((page) => fetchPageItems(page)),
+  );
+
+  const feeds = [];
+  const failures = [];
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      feeds.push(result.value);
+    } else {
+      failures.push(result.reason?.message || "unknown page failure");
     }
   }
 
@@ -301,21 +426,43 @@ async function getMarketWatchForUser(userId, options = {}) {
   ].slice(0, instrumentLimit);
 
   const { feeds, failures } = await fetchAllFeedItems();
+  const primarySources = feeds.length > 0 ? feeds : [];
 
-  if (feeds.length === 0) {
-    throw new Error(failures.join(" | ") || "Unable to load publisher feeds right now");
-  }
-
-  const sections = MARKET_BRIEF_SECTIONS.map((section) => ({
+  let sections = MARKET_BRIEF_SECTIONS.map((section) => ({
     id: section.id,
     label: section.label,
-    headlines: getSectionHeadlines(section, feeds, headlinesPerSection),
+    headlines: getSectionHeadlines(section, primarySources, headlinesPerSection),
   })).filter((section) => section.headlines.length > 0);
 
-  const instrumentResults = instruments.map((instrument) => ({
+  let instrumentResults = instruments.map((instrument) => ({
     instrument,
-    headlines: getInstrumentHeadlines(instrument, feeds, headlinesPerInstrument),
+    headlines: getInstrumentHeadlines(instrument, primarySources, headlinesPerInstrument),
   })).filter((entry) => entry.headlines.length > 0);
+
+  let sourceErrors = [...failures];
+
+  if (primarySources.length === 0 || (sections.length === 0 && instrumentResults.length === 0)) {
+    const pageResults = await fetchAllPageItems();
+    const fallbackSources = pageResults.feeds;
+    sourceErrors = [...sourceErrors, ...pageResults.failures];
+
+    if (fallbackSources.length > 0) {
+      sections = MARKET_BRIEF_SECTIONS.map((section) => ({
+        id: section.id,
+        label: section.label,
+        headlines: getSectionHeadlines(section, fallbackSources, headlinesPerSection),
+      })).filter((section) => section.headlines.length > 0);
+
+      instrumentResults = instruments.map((instrument) => ({
+        instrument,
+        headlines: getInstrumentHeadlines(instrument, fallbackSources, headlinesPerInstrument),
+      })).filter((entry) => entry.headlines.length > 0);
+    }
+  }
+
+  if (sections.length === 0 && instrumentResults.length === 0) {
+    throw new Error(sourceErrors.join(" | ") || "Unable to load publisher market headlines right now");
+  }
 
   return {
     sections,
