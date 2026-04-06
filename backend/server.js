@@ -16,6 +16,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/ai", require("./routes/ai"));
 app.use("/api/subscription", require("./routes/subscription"));
 app.use("/api/payment-request", require("./routes/paymentRequest"));
+app.use("/api/market-watch", require("./routes/marketWatch"));
 
 app.get("/", (req, res) => {
   res.send("Trading Journal API Running...");
