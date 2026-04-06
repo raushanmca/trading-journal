@@ -309,7 +309,11 @@ export default function AIJournalChatbot() {
       {isOpen ? (
         <div className="ai-chat-widget__panel">
           <div className="ai-chat-widget__header">
-            <div>
+            <div className="ai-chat-widget__header-main">
+              <div className="ai-chat-widget__header-badge">
+                <span className="ai-chat-widget__header-dot" />
+                {t("ai.headerStatus")}
+              </div>
               <h3>{t("ai.title")}</h3>
               <p>{t("ai.description")}</p>
             </div>
@@ -328,6 +332,11 @@ export default function AIJournalChatbot() {
                 key={index}
                 className={`ai-chat-widget__message-row ai-chat-widget__message-row--${msg.role}`}
               >
+                {msg.role === "assistant" ? (
+                  <div className="ai-chat-widget__avatar-badge ai-chat-widget__avatar-badge--assistant">
+                    AI
+                  </div>
+                ) : null}
                 <div
                   className={`ai-chat-widget__bubble ai-chat-widget__bubble--${msg.role}`}
                 >
@@ -336,7 +345,10 @@ export default function AIJournalChatbot() {
               </div>
             ))}
             {isLoading ? (
-              <div className="ai-chat-widget__thinking">{t("ai.thinking")}</div>
+              <div className="ai-chat-widget__thinking">
+                <span className="ai-chat-widget__thinking-dot" />
+                {t("ai.thinking")}
+              </div>
             ) : null}
           </div>
 
@@ -370,11 +382,16 @@ export default function AIJournalChatbot() {
         disabled={!premiumEnabled}
         aria-disabled={!premiumEnabled}
       >
-        <span className="ai-chat-widget__launcher-label">
-          {premiumEnabled ? t("ai.launcherLabel") : t("ai.premiumOnlyLabel")}
+        <span className="ai-chat-widget__launcher-icon" aria-hidden="true">
+          <span className="ai-chat-widget__launcher-icon-core">AI</span>
         </span>
-        <span className="ai-chat-widget__launcher-title">
-          {premiumEnabled ? t("ai.launcherTitle") : t("ai.premiumUpgradeCta")}
+        <span className="ai-chat-widget__launcher-copy">
+          <span className="ai-chat-widget__launcher-label">
+            {premiumEnabled ? t("ai.launcherLabel") : t("ai.premiumOnlyLabel")}
+          </span>
+          <span className="ai-chat-widget__launcher-title">
+            {premiumEnabled ? t("ai.launcherTitle") : t("ai.premiumUpgradeCta")}
+          </span>
         </span>
       </button>
       {!premiumEnabled ? (
