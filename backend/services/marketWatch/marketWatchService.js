@@ -1,83 +1,104 @@
 const axios = require("axios");
 const { getRecentJournalEntries } = require("../journal/journalService");
 
-const GOOGLE_NEWS_RSS_BASE_URL =
-  "https://news.google.com/rss/search?hl=en-IN&gl=IN&ceid=IN:en&q=";
 const RECENT_NEWS_MAX_AGE_MS = 1000 * 60 * 60 * 24;
-const BLOCKED_NEWS_SOURCES = new Set([
-  "MSN",
-  "Yahoo",
-  "Yahoo Finance",
-  "AOL",
-  "NewsBreak",
-]);
+const FEED_TIMEOUT_MS = 8000;
+const REQUEST_HEADERS = {
+  "User-Agent": "TradingJournalMarketWatch/1.0",
+  "Cache-Control": "no-cache",
+  Pragma: "no-cache",
+};
+
+const DIRECT_NEWS_FEEDS = [
+  {
+    id: "et-markets",
+    label: "Economic Times",
+    url: "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+  },
+  {
+    id: "et-stocks",
+    label: "Economic Times",
+    url: "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms",
+  },
+  {
+    id: "et-expert-view",
+    label: "Economic Times",
+    url: "https://economictimes.indiatimes.com/markets/expert-view/rssfeeds/50649960.cms",
+  },
+  {
+    id: "et-indices",
+    label: "Economic Times",
+    url: "https://economictimes.indiatimes.com/market-data/indices/rssfeeds/110738010.cms",
+  },
+  {
+    id: "mint-markets",
+    label: "Mint",
+    url: "https://www.livemint.com/rss/markets",
+  },
+  {
+    id: "mint-money",
+    label: "Mint",
+    url: "https://www.livemint.com/rss/money",
+  },
+  {
+    id: "bs-markets",
+    label: "Business Standard",
+    url: "https://www.business-standard.com/rss/markets-106.rss",
+  },
+  {
+    id: "bs-market-news",
+    label: "Business Standard",
+    url: "https://www.business-standard.com/rss/markets/news-10601.rss",
+  },
+  {
+    id: "bs-stock-market-news",
+    label: "Business Standard",
+    url: "https://www.business-standard.com/rss/markets/stock-market-news-10618.rss",
+  },
+];
 
 const INSTRUMENT_QUERY_ALIASES = {
-  NIFTY: ["NIFTY 50 NSE", "NIFTY index India"],
-  BANKNIFTY: ["BANK NIFTY NSE", "NIFTY BANK index India"],
-  FINNIFTY: ["FINNIFTY NSE", "NIFTY Financial Services index"],
-  MIDCPNIFTY: ["MIDCPNIFTY NSE", "NIFTY Midcap Select index"],
-  RELIANCE: ["Reliance Industries NSE", "Reliance stock India"],
-  HDFCBANK: ["HDFC Bank NSE", "HDFC Bank stock India"],
-  TCS: ["TCS NSE", "Tata Consultancy Services stock India"],
-  SBIN: ["State Bank of India NSE", "SBIN stock India"],
-  INFY: ["Infosys NSE", "INFY stock India"],
+  NIFTY: ["nifty", "nifty 50", "sensex"],
+  BANKNIFTY: ["bank nifty", "banknifty", "nifty bank", "banking index"],
+  FINNIFTY: ["finnifty", "nifty financial services", "financial services index"],
+  MIDCPNIFTY: ["midcpnifty", "nifty midcap select", "midcap select"],
+  RELIANCE: ["reliance", "reliance industries"],
+  HDFCBANK: ["hdfc bank", "hdfcbank"],
+  TCS: ["tcs", "tata consultancy services"],
+  SBIN: ["sbin", "state bank of india", "sbi"],
+  INFY: ["infy", "infosys"],
 };
 
 const MARKET_BRIEF_SECTIONS = [
   {
     id: "global-risk",
     label: "Global Risk",
-    queries: [
-      "war oil middle east market impact India",
-      "geopolitical tensions stock market impact India",
-      "global risk sentiment market today",
-    ],
+    keywords: ["oil", "crude", "war", "tariff", "geopolitical", "middle east", "fed"],
   },
   {
     id: "us-close",
     label: "US Market Close",
-    queries: [
-      "US market close Dow Nasdaq S&P 500 today",
-      "Wall Street close today market summary",
-      "Nasdaq Dow futures market close summary",
-    ],
+    keywords: ["wall street", "dow", "nasdaq", "s&p", "us market", "u.s. market"],
   },
   {
     id: "asia-markets",
     label: "Asia Market Update",
-    queries: [
-      "Asian markets today Nikkei Hang Seng Kospi market update",
-      "Asia stock market today market summary",
-      "Nikkei Hang Seng Asia market outlook today",
-    ],
+    keywords: ["asia", "asian markets", "nikkei", "hang seng", "kospi", "shanghai"],
   },
   {
     id: "gift-nifty",
     label: "GIFT NIFTY",
-    queries: [
-      "GIFT NIFTY today outlook",
-      "GIFT NIFTY signals Indian market open",
-      "Gift Nifty live market sentiment",
-    ],
+    keywords: ["gift nifty", "gift city", "sgx nifty"],
   },
   {
     id: "nifty",
     label: "NIFTY",
-    queries: [
-      "NIFTY 50 today outlook",
-      "NIFTY market outlook tomorrow",
-      "NSE NIFTY support resistance today",
-    ],
+    keywords: ["nifty", "sensex", "nifty 50", "index"],
   },
   {
     id: "banknifty",
     label: "BANKNIFTY",
-    queries: [
-      "BANK NIFTY today outlook",
-      "Bank Nifty support resistance today",
-      "Bank Nifty tomorrow market setup",
-    ],
+    keywords: ["bank nifty", "banknifty", "nifty bank", "bank stocks"],
   },
 ];
 
@@ -91,7 +112,10 @@ function decodeXmlEntities(value) {
 }
 
 function stripHtml(value) {
-  return value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  return String(value || "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function getTagContent(block, tagName) {
@@ -106,8 +130,12 @@ function normalizeInstrumentName(value) {
     .toUpperCase();
 }
 
-function buildNewsQuery(instrument) {
-  return encodeURIComponent(instrument);
+function normalizeSearchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function getPubDateTimestamp(pubDate) {
@@ -125,40 +153,23 @@ function isRecentHeadline(item, maxAgeMs = RECENT_NEWS_MAX_AGE_MS) {
   return Date.now() - timestamp <= maxAgeMs;
 }
 
-function isBlockedSource(source) {
-  return BLOCKED_NEWS_SOURCES.has(String(source || "").trim());
+function matchesKeywords(text, keywords) {
+  if (!keywords.length) {
+    return false;
+  }
+
+  const normalizedText = normalizeSearchText(text);
+  return keywords.some((keyword) => normalizedText.includes(normalizeSearchText(keyword)));
 }
 
-function looksLikeStaleHeadline(item) {
-  const normalizedTitle = String(item.title || "").toLowerCase();
-
-  if (!normalizedTitle) {
-    return true;
-  }
-
-  if (isBlockedSource(item.source)) {
-    return true;
-  }
-
-  if (
-    /(?:\b\d+\s*(?:w|week|weeks|month|months)\b)|(?:story by)|(?:\bmin read\b)/i.test(
-      normalizedTitle,
-    )
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function parseRssItems(xml) {
+function parseRssItems(xml, fallbackSource) {
   const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
 
   return itemMatches.map((itemBlock) => {
     const title = stripHtml(getTagContent(itemBlock, "title"));
     const link = getTagContent(itemBlock, "link");
     const pubDate = getTagContent(itemBlock, "pubDate");
-    const source = stripHtml(getTagContent(itemBlock, "source")) || "Google News";
+    const source = stripHtml(getTagContent(itemBlock, "source")) || fallbackSource;
 
     return {
       title,
@@ -169,194 +180,78 @@ function parseRssItems(xml) {
   });
 }
 
-async function fetchNewsByQuery(query, instrument, maxItems = 3) {
-  const queryVariants = [
-    `${query} latest when:1d`,
-    `${query} today when:1d`,
-    `${query} live when:1d`,
-  ];
+async function fetchFeedItems(feed) {
+  const response = await axios.get(`${feed.url}${feed.url.includes("?") ? "&" : "?"}nocache=${Date.now()}`, {
+    timeout: FEED_TIMEOUT_MS,
+    responseType: "text",
+    headers: REQUEST_HEADERS,
+  });
+
+  return parseRssItems(response.data, feed.label)
+    .filter((item) => item.title && item.link && isRecentHeadline(item))
+    .map((item) => ({
+      ...item,
+      source: item.source || feed.label,
+    }));
+}
+
+async function fetchAllFeedItems() {
+  const results = await Promise.allSettled(
+    DIRECT_NEWS_FEEDS.map(async (feed) => ({
+      feed,
+      items: await fetchFeedItems(feed),
+    })),
+  );
+
+  const feeds = [];
   const failures = [];
 
-  for (const queryVariant of queryVariants) {
-    try {
-      const response = await axios.get(
-        `${GOOGLE_NEWS_RSS_BASE_URL}${buildNewsQuery(queryVariant)}&nocache=${Date.now()}`,
-        {
-          timeout: 8000,
-          responseType: "text",
-          headers: {
-            "User-Agent": "TradingJournalMarketWatch/1.0",
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        },
-      );
-
-      const parsedItems = parseRssItems(response.data).filter(
-        (item) => item.title && item.link && !looksLikeStaleHeadline(item),
-      );
-      const sortedItems = [...parsedItems].sort(
-        (left, right) =>
-          getPubDateTimestamp(right.pubDate) - getPubDateTimestamp(left.pubDate),
-      );
-      const items = sortedItems
-        .filter((item) => isRecentHeadline(item))
-        .slice(0, maxItems);
-
-      if (items.length > 0) {
-        return {
-          instrument,
-          headlines: items,
-        };
-      }
-    } catch (error) {
-      const status = error.response?.status;
-      const detail = status
-        ? `upstream status ${status}`
-        : error.code || error.message || "unknown upstream error";
-      failures.push(`${queryVariant}: ${detail}`);
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      feeds.push(result.value);
+    } else {
+      failures.push(result.reason?.message || "unknown feed failure");
     }
   }
 
-  throw new Error(failures.join(" | ") || `No fresh headlines found for ${instrument}`);
+  return { feeds, failures };
 }
 
-async function fetchInstrumentNews(instrument, maxItems = 3) {
-  const queries = [
-    ...(INSTRUMENT_QUERY_ALIASES[instrument] || []),
-    `${instrument} NSE stock latest news`,
-    `${instrument} stock India latest news`,
-    `${instrument} market news today`,
-  ];
-
+function dedupeAndSortHeadlines(items, maxItems) {
   const seenLinks = new Set();
-  const combinedHeadlines = [];
-  const failures = [];
+  const sortedItems = [...items].sort(
+    (left, right) => getPubDateTimestamp(right.pubDate) - getPubDateTimestamp(left.pubDate),
+  );
 
-  for (const query of queries) {
-    try {
-      const result = await fetchNewsByQuery(query, instrument, maxItems);
-
-      for (const headline of result.headlines) {
-        if (seenLinks.has(headline.link)) {
-          continue;
-        }
-
-        seenLinks.add(headline.link);
-        combinedHeadlines.push(headline);
-
-        if (combinedHeadlines.length >= maxItems) {
-          return {
-            instrument,
-            headlines: combinedHeadlines,
-          };
-        }
-      }
-    } catch (error) {
-      failures.push(error.message || `Failed query: ${query}`);
+  return sortedItems.filter((item) => {
+    if (seenLinks.has(item.link)) {
+      return false;
     }
-  }
 
-  if (combinedHeadlines.length > 0) {
-    return {
-      instrument,
-      headlines: combinedHeadlines,
-    };
-  }
-
-  throw new Error(failures.join(" | ") || `No headlines found for ${instrument}`);
+    seenLinks.add(item.link);
+    return true;
+  }).slice(0, maxItems);
 }
 
-async function fetchFallbackMarketNews(maxItems = 3) {
-  const fallbackQueries = [
-    "Indian stock market latest news today",
-    "NSE market outlook today",
-    "Sensex Nifty latest market news today",
-  ];
+function getSectionHeadlines(section, feeds, maxItems) {
+  const matchedItems = feeds.flatMap(({ items }) =>
+    items.filter((item) => matchesKeywords(item.title, section.keywords)),
+  );
 
-  const seenLinks = new Set();
-  const headlines = [];
-
-  for (const query of fallbackQueries) {
-    try {
-      const result = await fetchNewsByQuery(query, "MARKET OUTLOOK", maxItems);
-
-      for (const headline of result.headlines) {
-        if (seenLinks.has(headline.link)) {
-          continue;
-        }
-
-        seenLinks.add(headline.link);
-        headlines.push(headline);
-
-        if (headlines.length >= maxItems) {
-          return {
-            instrument: "MARKET OUTLOOK",
-            headlines,
-          };
-        }
-      }
-    } catch (error) {
-      // Ignore per-query fallback failure and continue trying the next query.
-    }
-  }
-
-  return {
-    instrument: "MARKET OUTLOOK",
-    headlines,
-  };
+  return dedupeAndSortHeadlines(matchedItems, maxItems);
 }
 
-async function fetchCombinedNews(queries, label, maxItems = 3) {
-  const seenLinks = new Set();
-  const headlines = [];
-  const failures = [];
-
-  for (const query of queries) {
-    try {
-      const result = await fetchNewsByQuery(query, label, maxItems);
-
-      for (const headline of result.headlines) {
-        if (seenLinks.has(headline.link)) {
-          continue;
-        }
-
-        seenLinks.add(headline.link);
-        headlines.push(headline);
-
-        if (headlines.length >= maxItems) {
-          return headlines;
-        }
-      }
-    } catch (error) {
-      failures.push(error.message || `Failed query: ${query}`);
-    }
-  }
-
-  if (headlines.length > 0) {
-    return headlines;
-  }
-
-  throw new Error(failures.join(" | ") || `No headlines found for ${label}`);
+function getInstrumentKeywords(instrument) {
+  return INSTRUMENT_QUERY_ALIASES[instrument] || [instrument];
 }
 
-async function fetchBriefSection(section, maxItems = 3) {
-  try {
-    const headlines = await fetchCombinedNews(section.queries, section.label, maxItems);
+function getInstrumentHeadlines(instrument, feeds, maxItems) {
+  const keywords = getInstrumentKeywords(instrument);
+  const matchedItems = feeds.flatMap(({ items }) =>
+    items.filter((item) => matchesKeywords(item.title, keywords)),
+  );
 
-    return {
-      id: section.id,
-      label: section.label,
-      headlines,
-    };
-  } catch (error) {
-    return {
-      id: section.id,
-      label: section.label,
-      headlines: [],
-      error: error.message || `No headlines found for ${section.label}`,
-    };
-  }
+  return dedupeAndSortHeadlines(matchedItems, maxItems);
 }
 
 function buildWatchpoints(sections, instruments) {
@@ -364,19 +259,19 @@ function buildWatchpoints(sections, instruments) {
   const sectionIds = new Set(sections.map((section) => section.id));
 
   if (sectionIds.has("global-risk")) {
-    watchpoints.push("Check geopolitical risk headlines before market open.");
+    watchpoints.push("Check global risk headlines before market open.");
   }
 
   if (sectionIds.has("us-close")) {
-    watchpoints.push("Use the US close as context, not a guaranteed next-day signal.");
+    watchpoints.push("Use the US close as context, not as a guaranteed next-day signal.");
   }
 
   if (sectionIds.has("asia-markets")) {
-    watchpoints.push("Check Asian market tone to confirm or challenge your India bias.");
+    watchpoints.push("Compare Asian market tone with your India bias before the open.");
   }
 
   if (sectionIds.has("gift-nifty")) {
-    watchpoints.push("Compare GIFT NIFTY direction with your pre-open bias.");
+    watchpoints.push("Compare GIFT NIFTY direction with your pre-open plan.");
   }
 
   if (sectionIds.has("nifty") || sectionIds.has("banknifty")) {
@@ -384,7 +279,7 @@ function buildWatchpoints(sections, instruments) {
   }
 
   if (instruments.length > 0) {
-    watchpoints.push(`Review instrument-specific headlines for ${instruments.join(", ")}.`);
+    watchpoints.push(`Review fresh headlines for ${instruments.join(", ")} before taking trades.`);
   }
 
   return watchpoints.slice(0, 4);
@@ -397,7 +292,6 @@ async function getMarketWatchForUser(userId, options = {}) {
     headlinesPerSection = 3,
   } = options;
   const recentTrades = await getRecentJournalEntries(userId, 12);
-
   const instruments = [
     ...new Set(
       recentTrades
@@ -406,65 +300,29 @@ async function getMarketWatchForUser(userId, options = {}) {
     ),
   ].slice(0, instrumentLimit);
 
-  const sectionResults = await Promise.all(
-    MARKET_BRIEF_SECTIONS.map((section) =>
-      fetchBriefSection(section, headlinesPerSection),
-    ),
-  );
+  const { feeds, failures } = await fetchAllFeedItems();
 
-  const sections = sectionResults.filter((section) => section.headlines.length > 0);
-
-  const instrumentResults = await Promise.allSettled(
-    instruments.map((instrument) =>
-      fetchInstrumentNews(instrument, headlinesPerInstrument),
-    ),
-  );
-
-  const fulfilled = instrumentResults
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value)
-    .filter((entry) => entry.headlines.length > 0);
-
-  if (sections.length === 0 && fulfilled.length === 0) {
-    const fallback = await fetchFallbackMarketNews(headlinesPerInstrument);
-
-    if (fallback.headlines.length > 0) {
-      return {
-        sections: [
-          {
-            id: "market-outlook",
-            label: "Market Outlook",
-            headlines: fallback.headlines,
-          },
-        ],
-        instruments: [fallback],
-        watchpoints: [
-          "Use this market outlook as a pre-market cue, not a guaranteed forecast.",
-        ],
-        fetchedAt: new Date().toISOString(),
-      };
-    }
-
-    const failures = [
-      ...sectionResults
-        .filter((section) => section.error)
-        .map((section) => section.error),
-      ...instrumentResults
-        .filter((result) => result.status === "rejected")
-        .map((result) => result.reason?.message || "unknown fetch failure"),
-    ];
-
-    if (failures.length > 0) {
-      throw new Error(failures.join(" | "));
-    }
+  if (feeds.length === 0) {
+    throw new Error(failures.join(" | ") || "Unable to load publisher feeds right now");
   }
+
+  const sections = MARKET_BRIEF_SECTIONS.map((section) => ({
+    id: section.id,
+    label: section.label,
+    headlines: getSectionHeadlines(section, feeds, headlinesPerSection),
+  })).filter((section) => section.headlines.length > 0);
+
+  const instrumentResults = instruments.map((instrument) => ({
+    instrument,
+    headlines: getInstrumentHeadlines(instrument, feeds, headlinesPerInstrument),
+  })).filter((entry) => entry.headlines.length > 0);
 
   return {
     sections,
-    instruments: fulfilled,
+    instruments: instrumentResults,
     watchpoints: buildWatchpoints(
       sections,
-      fulfilled.map((entry) => entry.instrument),
+      instrumentResults.map((entry) => entry.instrument),
     ),
     fetchedAt: new Date().toISOString(),
   };
