@@ -12,7 +12,8 @@ router.get("/", requireAuth, requireActiveTrial, async (req, res) => {
   } catch (error) {
     console.error("Market watch fetch failed:", error.message);
     res.status(500).json({
-      message: "Unable to load market watch news right now",
+      message:
+        error.message || "Unable to load market watch news right now",
     });
   }
 });

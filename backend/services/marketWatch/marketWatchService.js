@@ -53,13 +53,26 @@ function parseRssItems(xml) {
 }
 
 async function fetchInstrumentNews(instrument, maxItems = 3) {
-  const response = await axios.get(
-    `${GOOGLE_NEWS_RSS_BASE_URL}${buildNewsQuery(instrument)}`,
-    {
-      timeout: 8000,
-      responseType: "text",
-    },
-  );
+  let response;
+
+  try {
+    response = await axios.get(
+      `${GOOGLE_NEWS_RSS_BASE_URL}${buildNewsQuery(instrument)}`,
+      {
+        timeout: 8000,
+        responseType: "text",
+        headers: {
+          "User-Agent": "TradingJournalMarketWatch/1.0",
+        },
+      },
+    );
+  } catch (error) {
+    const status = error.response?.status;
+    const detail = status
+      ? `upstream status ${status}`
+      : error.code || error.message || "unknown upstream error";
+    throw new Error(`Failed to fetch news for ${instrument}: ${detail}`);
+  }
 
   const items = parseRssItems(response.data)
     .filter((item) => item.title && item.link)
@@ -96,11 +109,23 @@ async function getMarketWatchForUser(userId, options = {}) {
     ),
   );
 
+  const fulfilled = results
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value)
+    .filter((entry) => entry.headlines.length > 0);
+
+  if (fulfilled.length === 0) {
+    const failures = results
+      .filter((result) => result.status === "rejected")
+      .map((result) => result.reason?.message || "unknown fetch failure");
+
+    if (failures.length > 0) {
+      throw new Error(failures.join(" | "));
+    }
+  }
+
   return {
-    instruments: results
-      .filter((result) => result.status === "fulfilled")
-      .map((result) => result.value)
-      .filter((entry) => entry.headlines.length > 0),
+    instruments: fulfilled,
     fetchedAt: new Date().toISOString(),
   };
 }
