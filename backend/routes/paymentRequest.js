@@ -2,13 +2,13 @@ const express = require("express");
 const requireAuth = require("../middleware/auth");
 const PaymentRequest = require("../models/PaymentRequest");
 const User = require("../models/User");
-const { OWNER_EMAIL } = require("../utils/trial");
+const { OWNER_EMAIL, normalizeEmail } = require("../utils/trial");
 const { buildAuthenticatedUser } = require("../services/auth/authResponseService");
 
 const router = express.Router();
 
 function isOwnerRequest(req) {
-  return req.user.email === OWNER_EMAIL;
+  return normalizeEmail(req.user.email || "") === OWNER_EMAIL;
 }
 
 async function processRequest(req, res, nextStatus) {
@@ -124,7 +124,13 @@ router.get("/pending-requests", requireAuth, async (req, res) => {
       .lean();
     return res.json({ requests });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch requests" });
+    console.error("Failed to fetch pending payment requests:", {
+      message: error.message,
+      email: req.user?.email,
+    });
+    return res.status(500).json({
+      message: error.message || "Failed to fetch requests",
+    });
   }
 });
 
@@ -150,7 +156,14 @@ router.get("/my-status", requireAuth, async (req, res) => {
       paymentRequest: latestRequest,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch payment request status" });
+    console.error("Failed to fetch payment request status:", {
+      message: error.message,
+      userId: req.user?.userId,
+      email: req.user?.email,
+    });
+    return res.status(500).json({
+      message: error.message || "Failed to fetch payment request status",
+    });
   }
 });
 

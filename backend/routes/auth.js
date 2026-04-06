@@ -24,7 +24,7 @@ const requireAuth = require("../middleware/auth");
 // Admin: Get all users and their subscription status
 router.get("/all-users", requireAuth, async (req, res) => {
   try {
-    if (req.user.email !== OWNER_EMAIL)
+    if (normalizeEmail(req.user.email || "") !== OWNER_EMAIL)
       return res.status(403).json({ message: "Forbidden" });
     const users = await User.find(
       {},
@@ -34,7 +34,13 @@ router.get("/all-users", requireAuth, async (req, res) => {
       .lean();
     return res.json({ users });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch users" });
+    console.error("Failed to fetch users:", {
+      message: error.message,
+      email: req.user?.email,
+    });
+    return res.status(500).json({
+      message: error.message || "Failed to fetch users",
+    });
   }
 });
 
@@ -220,7 +226,12 @@ router.post("/google", async (req, res) => {
 
 router.get("/me", requireAuth, async (req, res) => {
   try {
-    const account = await User.findOne({ authProviderId: req.user.userId });
+    const account = await User.findOne({
+      $or: [
+        { authProviderId: req.user.userId },
+        { email: normalizeEmail(req.user.email || "") },
+      ],
+    });
 
     if (!account) {
       return res.status(404).json({ message: "User not found" });
@@ -229,8 +240,14 @@ router.get("/me", requireAuth, async (req, res) => {
     const { user } = buildAuthenticatedUser(account);
     return res.json({ user });
   } catch (error) {
-    console.error("Failed to fetch current user:", error.message);
-    return res.status(500).json({ message: "Failed to fetch user" });
+    console.error("Failed to fetch current user:", {
+      message: error.message,
+      userId: req.user?.userId,
+      email: req.user?.email,
+    });
+    return res.status(500).json({
+      message: error.message || "Failed to fetch user",
+    });
   }
 });
 
