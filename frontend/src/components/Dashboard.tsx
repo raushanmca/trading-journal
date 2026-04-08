@@ -14,7 +14,6 @@ import { useLocalization } from "../localization/LocalizationProvider";
 import { useAppDateFormatter } from "../localization/date";
 import { showToast } from "../utils/toast";
 import {
-  isDashboardCacheFresh,
   readDashboardCache,
   writeDashboardCache,
 } from "../features/dashboard/dashboardCache";
@@ -173,10 +172,7 @@ export default function Dashboard() {
     const cachedDashboard = readDashboardCache();
     if (cachedDashboard) {
       setTrades(cachedDashboard.trades);
-
-      if (isDashboardCacheFresh(cachedDashboard.savedAt)) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
 
     axios

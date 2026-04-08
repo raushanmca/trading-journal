@@ -80,17 +80,12 @@ export function AdminUserList() {
   async function fetchUsersAndRequests() {
     setLoading(true);
     try {
-      const [usersRes, requestsRes] = await Promise.all([
-        axios.get(`${BASE_URL}/api/auth/all-users`, {
-          headers: getAuthHeaders(),
-        }),
-        axios.get(`${BASE_URL}/api/payment-request/pending-requests`, {
-          headers: getAuthHeaders(),
-        }),
-      ]);
+      const overviewRes = await axios.get(`${BASE_URL}/api/auth/admin-overview`, {
+        headers: getAuthHeaders(),
+      });
 
-      setUsers(usersRes.data?.users || usersRes.data || []);
-      setPendingRequests(requestsRes.data?.requests || []);
+      setUsers(overviewRes.data?.users || []);
+      setPendingRequests(overviewRes.data?.pendingRequests || []);
       setError("");
     } catch (e) {
       console.error(e);
