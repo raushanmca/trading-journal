@@ -855,7 +855,7 @@ export default function Dashboard() {
             </div>
 
             <div className="dashboard-analysis__grid">
-              <div className="dashboard-analysis__section">
+              <div className="dashboard-analysis__section dashboard-analysis__section--strengths">
                 <h4>{t("dashboard.analysisStrengths")}</h4>
                 <ul>
                   {requestedAnalysis.strengths.map((item) => (
@@ -864,7 +864,7 @@ export default function Dashboard() {
                 </ul>
               </div>
 
-              <div className="dashboard-analysis__section">
+              <div className="dashboard-analysis__section dashboard-analysis__section--risks">
                 <h4>{t("dashboard.analysisRisks")}</h4>
                 <ul>
                   {requestedAnalysis.risks.map((item) => (
