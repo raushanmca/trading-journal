@@ -76,7 +76,7 @@ Mounted in `server.js`:
 - `GET /api/journal` fetch all journal entries
 - `POST /api/journal` create a journal entry
 
-Journal payload fields are defined in `models/Journal.js` (for example: `date`, `marketBias`, `instrument`, `entryPrice`, `pnl`, `mistakes`, `emotionalState`, `aiInsight`, and more).
+Journal payload fields are defined in `models/Journal.js` (for example: `date`, `instrument`, `entryPrice`, `pnl`, `mistakes`, `emotionalState`, `aiInsight`, and more).
 
 ## Important Integration Note
 

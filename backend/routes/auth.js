@@ -44,6 +44,43 @@ router.get("/all-users", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/admin-overview", requireAuth, async (req, res) => {
+  try {
+    if (normalizeEmail(req.user.email || "") !== OWNER_EMAIL) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const PaymentRequest = require("../models/PaymentRequest");
+    const [users, requests] = await Promise.all([
+      User.find(
+        {},
+        "email name trialEndsAt renewalCount isOwner loginCount lastLoginAt membershipPlan",
+      )
+        .sort({ updatedAt: -1 })
+        .lean(),
+      PaymentRequest.find(
+        { status: "pending" },
+        "email paymentReference status requestedAt approvedAt adminEmail createdAt",
+      )
+        .sort({ requestedAt: -1 })
+        .lean(),
+    ]);
+
+    return res.json({
+      users,
+      pendingRequests: requests,
+    });
+  } catch (error) {
+    console.error("Failed to fetch admin overview:", {
+      message: error.message,
+      email: req.user?.email,
+    });
+    return res.status(500).json({
+      message: error.message || "Failed to fetch admin overview",
+    });
+  }
+});
+
 router.delete("/user/:userId", async (req, res) => {
   try {
     const authHeader = req.headers.authorization || "";

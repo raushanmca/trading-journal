@@ -36,7 +36,6 @@ const JournalSchema = new mongoose.Schema(
       default: [],
     },
     date: String,
-    marketBias: String,
     instrument: String,
     entryTime: String,
     entryPrice: String,
