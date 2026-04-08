@@ -1,9 +1,12 @@
+import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { DndProvider } from "react-dnd";
 import { AppShell } from "./app/layout/AppShell";
 import { getDragDropBackend } from "./app/dnd/dndBackend";
 import { AppRoutes } from "./app/router/AppRoutes";
 import { useAuthSession } from "./features/auth/hooks/useAuthSession";
+import { prefetchAdminData } from "./features/admin/adminData";
+import { prefetchDashboardTrades } from "./features/dashboard/dashboardData";
 import "./App.css";
 
 function App() {
@@ -18,6 +21,18 @@ function App() {
     userInitials,
   } = useAuthSession();
   const dndBackend = getDragDropBackend();
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      return;
+    }
+
+    void prefetchDashboardTrades();
+
+    if (user?.email === "rshan45@gmail.com") {
+      void prefetchAdminData();
+    }
+  }, [isSignedIn, user?.email]);
 
   return (
     <DndProvider backend={dndBackend.backend} options={dndBackend.options}>

@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { prefetchAdminData } from "../features/admin/adminData";
+import { prefetchDashboardTrades } from "../features/dashboard/dashboardData";
 import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
 import { showToast } from "../utils/toast";
@@ -30,6 +32,11 @@ export default function LoginForm({ onComplete }: LoginFormProps) {
     localStorage.setItem("token", payload.token);
     localStorage.setItem("user", JSON.stringify(payload.user));
     window.dispatchEvent(new Event("auth-changed"));
+    void prefetchDashboardTrades();
+
+    if (payload.user?.email === "rshan45@gmail.com") {
+      void prefetchAdminData();
+    }
 
     if (payload.user?.isTrialExpired) {
       showToast(t("login.alert.trialExpired"), "warning");
