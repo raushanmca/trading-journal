@@ -1,28 +1,15 @@
-import { Suspense, lazy } from "react";
+// ...existing code...
+
+import { AdminUserList } from "../../components/AdminUserList";
+
 import { Navigate, Route, Routes } from "react-router-dom";
 import JournalForm from "../../components/JournalForm";
+import Dashboard from "../../components/Dashboard";
 import Login from "../../components/Login";
 import AboutPage from "../../components/AboutPage";
 import HelpPage from "../../components/HelpPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import type { StoredUser } from "../../features/auth/types";
-
-const Dashboard = lazy(() => import("../../components/Dashboard"));
-const AdminUserList = lazy(() =>
-  import("../../components/AdminUserList").then((module) => ({
-    default: module.AdminUserList,
-  })),
-);
-
-function RouteLoadingFallback() {
-  return (
-    <div className="dashboard-page dashboard-page--loading">
-      <div className="dashboard-loading-card">
-        <span className="login-panel__spinner login-panel__spinner--dark" />
-      </div>
-    </div>
-  );
-}
 
 interface AppRoutesProps {
   isSignedIn: boolean;
@@ -45,25 +32,21 @@ export function AppRoutes({ isSignedIn, user }: AppRoutesProps) {
       <Route
         path="/dashboard"
         element={
-          <Suspense fallback={<RouteLoadingFallback />}>
-            <ProtectedRoute isSignedIn={isSignedIn} user={user} allowExpired>
-              <Dashboard />
-            </ProtectedRoute>
-          </Suspense>
+          <ProtectedRoute isSignedIn={isSignedIn} user={user} allowExpired>
+            <Dashboard />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/admin/users"
         element={
-          <Suspense fallback={<RouteLoadingFallback />}>
-            <ProtectedRoute isSignedIn={isSignedIn} user={user}>
-              {user?.email === "rshan45@gmail.com" ? (
-                <AdminUserList />
-              ) : (
-                <Navigate to="/" replace />
-              )}
-            </ProtectedRoute>
-          </Suspense>
+          <ProtectedRoute isSignedIn={isSignedIn} user={user}>
+            {user?.email === "rshan45@gmail.com" ? (
+              <AdminUserList />
+            ) : (
+              <Navigate to="/" replace />
+            )}
+          </ProtectedRoute>
         }
       />
       <Route

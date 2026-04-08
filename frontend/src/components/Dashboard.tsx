@@ -9,15 +9,17 @@ import {
   hasPremiumAccess,
   isTrialExpired,
 } from "../utils/auth";
+import { getApiBaseUrl } from "../utils/api";
 import { useLocalization } from "../localization/LocalizationProvider";
 import { useAppDateFormatter } from "../localization/date";
 import { showToast } from "../utils/toast";
 import {
-  fetchDashboardTrades,
-  getCachedDashboardTrades,
-  type DashboardTrade,
-} from "../features/dashboard/dashboardData";
+  isDashboardCacheFresh,
+  readDashboardCache,
+  writeDashboardCache,
+} from "../features/dashboard/dashboardCache";
 import { RenewAccessActions } from "../features/subscription/components/RenewAccessActions";
+const BASE_URL = getApiBaseUrl();
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -41,7 +43,15 @@ ChartJS.register(
   Legend,
 );
 
-type Trade = DashboardTrade;
+interface Trade {
+  _id?: string;
+  date: string;
+  instrument: string;
+  pnl: number;
+  rating: number;
+  mistakes?: string[];
+  journalComment?: string;
+}
 
 interface DashboardAnalysis {
   summary: string;
@@ -99,10 +109,8 @@ export default function Dashboard() {
   const { formatCompactDate, formatLongDate } = useAppDateFormatter();
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentMonthRange = getCurrentMonthRange();
-  const cachedDashboard = getCachedDashboardTrades();
-  const [trades, setTrades] = useState<Trade[]>(cachedDashboard?.trades ?? []);
-  const [loading, setLoading] = useState(!cachedDashboard);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [trialEndsAt, setTrialEndsAt] = useState("");
@@ -162,33 +170,33 @@ export default function Dashboard() {
       };
     }
 
-    const cachedData = getCachedDashboardTrades();
+    const cachedDashboard = readDashboardCache();
+    if (cachedDashboard) {
+      setTrades(cachedDashboard.trades);
 
-    if (cachedData) {
-      setTrades(cachedData.trades);
-      setLoading(false);
-      setIsRefreshing(true);
-    } else {
-      setLoading(true);
+      if (isDashboardCacheFresh(cachedDashboard.savedAt)) {
+        setLoading(false);
+      }
     }
 
-    fetchDashboardTrades()
-      .then((nextTrades) => {
-        setTrades(nextTrades);
+    axios
+      .get(`${BASE_URL}/api/journal?view=dashboard`, {
+        headers: authHeaders,
+      })
+      .then((res) => {
+        setTrades(res.data);
+        writeDashboardCache(res.data);
         setErrorMessage("");
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
-        if (axios.isAxiosError(err) && !cachedData) {
+        if (axios.isAxiosError(err) && !cachedDashboard) {
           setErrorMessage(
             err.response?.data?.message || t("dashboard.loadFailed"),
           );
         }
         setLoading(false);
-      })
-      .finally(() => {
-        setIsRefreshing(false);
       });
 
     return () => {
@@ -495,27 +503,14 @@ export default function Dashboard() {
     }, 250);
   };
 
-  if (loading && trades.length === 0)
+  if (loading)
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-hero">
-          <div>
-            <div className="dashboard-hero__eyebrow">{t("dashboard.performanceOverview")}</div>
-            <h1>{t("dashboard.title")}</h1>
-            <p>{t("dashboard.subtitle")}</p>
-          </div>
-        </div>
-        <div className="dashboard-kpis">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="dashboard-kpi">
-              <span className="dashboard-kpi__label">{t("dashboard.loading")}</span>
-              <span className="dashboard-kpi__value">...</span>
-            </div>
-          ))}
-        </div>
+      <div className="dashboard-page dashboard-page--loading">
         <div className="dashboard-loading-card">
           <span className="login-panel__spinner login-panel__spinner--dark" />
-          <div className="dashboard-loading-card__text">{t("dashboard.loading")}</div>
+          <div className="dashboard-loading-card__text">
+            {t("dashboard.loading")}
+          </div>
         </div>
       </div>
     );
@@ -625,11 +620,6 @@ export default function Dashboard() {
         </div>
       ) : null}
       {errorMessage ? <div className="dashboard-banner dashboard-banner--danger">{errorMessage}</div> : null}
-      {isRefreshing ? (
-        <div className="dashboard-banner">
-          <div className="dashboard-banner__label">{t("dashboard.loading")}</div>
-        </div>
-      ) : null}
 
       <div className="dashboard-filters">
         <div className="dashboard-filters__copy">

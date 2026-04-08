@@ -2,34 +2,20 @@ import { useLocalization } from "../localization/LocalizationProvider";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
-import { getAuthHeaders } from "../utils/auth";
-import {
-  fetchAdminData,
-  getCachedAdminData,
-} from "../features/admin/adminData";
-import {
-  writeAdminDataCache,
-  type AdminPendingRequestRecord,
-  type AdminUserRecord,
-} from "../features/admin/adminDataCache";
-
 import { getApiBaseUrl } from "../utils/api";
+import { getAuthHeaders } from "../utils/auth";
 
 const BASE_URL = getApiBaseUrl();
 
 export function AdminUserList() {
   const location = useLocation();
-  const cachedAdminData = getCachedAdminData();
-  const [users, setUsers] = useState<AdminUserRecord[]>(cachedAdminData?.users ?? []);
-  const [pendingRequests, setPendingRequests] = useState<AdminPendingRequestRecord[]>(
-    cachedAdminData?.pendingRequests ?? [],
-  );
-  const [deleteCandidate, setDeleteCandidate] = useState<AdminUserRecord | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [deleteCandidate, setDeleteCandidate] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [loading, setLoading] = useState(!cachedAdminData);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const approvalsSectionRef = useRef<HTMLElement | null>(null);
 
   const { t } = useLocalization();
@@ -47,7 +33,7 @@ export function AdminUserList() {
   const formatDateTime = (value?: string) =>
     value ? new Date(value).toLocaleString() : "-";
 
-  const getSubscriptionType = (user: AdminUserRecord) => {
+  const getSubscriptionType = (user: any) => {
     if (user.isOwner) {
       return {
         label: t("admin.subscriptionOwner"),
@@ -91,20 +77,20 @@ export function AdminUserList() {
     };
   };
 
-  async function fetchUsersAndRequests(options?: {
-    force?: boolean;
-    suppressLoading?: boolean;
-  }) {
-    if (options?.suppressLoading) {
-      setIsRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
+  async function fetchUsersAndRequests() {
+    setLoading(true);
     try {
-      const data = await fetchAdminData({ force: options?.force });
-      setUsers(data.users);
-      setPendingRequests(data.pendingRequests);
+      const [usersRes, requestsRes] = await Promise.all([
+        axios.get(`${BASE_URL}/api/auth/all-users`, {
+          headers: getAuthHeaders(),
+        }),
+        axios.get(`${BASE_URL}/api/payment-request/pending-requests`, {
+          headers: getAuthHeaders(),
+        }),
+      ]);
+
+      setUsers(usersRes.data?.users || usersRes.data || []);
+      setPendingRequests(requestsRes.data?.requests || []);
       setError("");
     } catch (e) {
       console.error(e);
@@ -117,7 +103,6 @@ export function AdminUserList() {
       }
     } finally {
       setLoading(false);
-      setIsRefreshing(false);
     }
   }
 
@@ -129,7 +114,7 @@ export function AdminUserList() {
         { headers: getAuthHeaders() },
       );
       setSuccess("Request approved and subscription extended.");
-      void fetchUsersAndRequests({ force: true, suppressLoading: true });
+      fetchUsersAndRequests(); // refresh data
     } catch (e) {
       console.error(e);
       setError("Failed to approve request");
@@ -144,7 +129,7 @@ export function AdminUserList() {
         { headers: getAuthHeaders() },
       );
       setSuccess(t("admin.denySuccess"));
-      void fetchUsersAndRequests({ force: true, suppressLoading: true });
+      fetchUsersAndRequests();
     } catch (e) {
       console.error(e);
       setError(t("admin.denyFailed"));
@@ -161,19 +146,17 @@ export function AdminUserList() {
       await axios.delete(`${BASE_URL}/api/auth/user/${deleteCandidate._id}`, {
         headers: getAuthHeaders(),
       });
-      const nextPendingRequests = pendingRequests.filter(
-        (request) => request.email !== deleteCandidate.email,
-      );
-      const nextUsers = users.filter((user) => user._id !== deleteCandidate._id);
-
       setSuccess(
         t("admin.deleteSuccess", {
           name: deleteCandidate.name || deleteCandidate.email,
         }),
       );
-      setPendingRequests(nextPendingRequests);
-      setUsers(nextUsers);
-      writeAdminDataCache(nextUsers, nextPendingRequests);
+      setPendingRequests((current) =>
+        current.filter((request) => request.email !== deleteCandidate.email),
+      );
+      setUsers((current) =>
+        current.filter((user) => user._id !== deleteCandidate._id),
+      );
       setDeleteCandidate(null);
       setError("");
     } catch (e) {
@@ -189,15 +172,7 @@ export function AdminUserList() {
   }
 
   useEffect(() => {
-    if (cachedAdminData) {
-      setUsers(cachedAdminData.users);
-      setPendingRequests(cachedAdminData.pendingRequests);
-      setLoading(false);
-      void fetchUsersAndRequests({ suppressLoading: true });
-      return;
-    }
-
-    void fetchUsersAndRequests();
+    fetchUsersAndRequests();
   }, []);
 
   useEffect(() => {
@@ -231,21 +206,11 @@ export function AdminUserList() {
     return () => window.cancelAnimationFrame(frameId);
   }, [location.hash, pendingRequests.length, loading]);
 
-  if (loading && users.length === 0 && pendingRequests.length === 0)
+  if (loading)
     return (
-      <div className="admin-dashboard">
-        <section className="admin-panel admin-panel--hero">
-          <div>
-            <p className="admin-panel__eyebrow">{t("nav.adminUsers")}</p>
-            <div className="admin-panel__headline">
-              <h2 className="admin-panel__title">{t("admin.headingUsers")}</h2>
-            </div>
-          </div>
-        </section>
-        <div className="admin-state admin-state--loading">
-          <span className="login-panel__spinner login-panel__spinner--dark" />
-          <div>{t("admin.loadingUsers")}</div>
-        </div>
+      <div className="admin-state admin-state--loading">
+        <span className="login-panel__spinner login-panel__spinner--dark" />
+        <div>{t("admin.loadingUsers")}</div>
       </div>
     );
   if (error) return <div className="admin-state admin-state--error">{error}</div>;
@@ -294,9 +259,6 @@ export function AdminUserList() {
       </section>
 
       {success && <div className="admin-feedback admin-feedback--success">{success}</div>}
-      {isRefreshing ? (
-        <div className="admin-feedback admin-feedback--success">{t("admin.loadingUsers")}</div>
-      ) : null}
 
       <section className="admin-panel">
         <div className="admin-section-header">
