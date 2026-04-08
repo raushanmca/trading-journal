@@ -60,6 +60,90 @@ interface DashboardAnalysis {
   actions: string[];
 }
 
+const NOTE_PLANNED_KEYWORDS = [
+  "plan",
+  "planned",
+  "setup",
+  "target",
+  "stop",
+  "sl",
+  "risk",
+  "rr",
+  "breakout",
+  "retest",
+  "level",
+  "according to plan",
+  "discipline",
+  "disciplined",
+  "waited",
+  "rule",
+];
+
+const NOTE_EMOTIONAL_KEYWORDS = [
+  "emotion",
+  "emotional",
+  "fear",
+  "scared",
+  "panic",
+  "greed",
+  "greedy",
+  "impulsive",
+  "impulse",
+  "fomo",
+  "revenge",
+  "hesitation",
+  "nervous",
+  "doubt",
+  "hope",
+  "rushed",
+  "hurry",
+  "early profit",
+  "booked profit early",
+  "booked early",
+];
+
+function normalizeNoteText(value?: string) {
+  return (value || "").trim().toLowerCase();
+}
+
+function countKeywordMatches(text: string, keywords: string[]) {
+  return keywords.reduce(
+    (count, keyword) => (text.includes(keyword) ? count + 1 : count),
+    0,
+  );
+}
+
+function analyzeTradeNotes(trades: Trade[]) {
+  return trades.reduce(
+    (summary, trade) => {
+      const noteText = normalizeNoteText(trade.journalComment);
+      if (!noteText) {
+        summary.missing += 1;
+        return summary;
+      }
+
+      summary.reviewed += 1;
+
+      const plannedScore = countKeywordMatches(noteText, NOTE_PLANNED_KEYWORDS);
+      const emotionalScore = countKeywordMatches(
+        noteText,
+        NOTE_EMOTIONAL_KEYWORDS,
+      );
+
+      if (plannedScore > emotionalScore) {
+        summary.planned += 1;
+      } else if (emotionalScore > plannedScore) {
+        summary.emotional += 1;
+      } else {
+        summary.mixed += 1;
+      }
+
+      return summary;
+    },
+    { reviewed: 0, planned: 0, emotional: 0, mixed: 0, missing: 0 },
+  );
+}
+
 function formatInputDate(date: Date) {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -176,7 +260,7 @@ export default function Dashboard() {
     }
 
     axios
-      .get(`${BASE_URL}/api/journal?view=dashboard`, {
+      .get(`${BASE_URL}/api/journal`, {
         headers: authHeaders,
       })
       .then((res) => {
@@ -332,12 +416,15 @@ export default function Dashboard() {
 
   const latestTrades = filteredTrades.slice(0, 3);
   const latestMomentum = latestTrades.reduce((sum, trade) => sum + trade.pnl, 0);
-  const averageWin =
-    filteredTrades.filter((trade) => trade.pnl > 0).reduce((sum, trade) => sum + trade.pnl, 0) /
-      Math.max(
-        1,
-        filteredTrades.filter((trade) => trade.pnl > 0).length,
-      ) || 0;
+  const noteReview = analyzeTradeNotes(filteredTrades);
+  const topMistake = sortedMistakes[0]?.[0] || "";
+  const topMistakeCount = sortedMistakes[0]?.[1] || 0;
+  const topMistakeTrades = topMistake
+    ? filteredTrades.filter((trade) =>
+        (trade.mistakes || []).some((mistake) => mistake.trim() === topMistake),
+      )
+    : [];
+  const topMistakeNoteReview = analyzeTradeNotes(topMistakeTrades);
   const averageLoss =
     filteredTrades.filter((trade) => trade.pnl < 0).reduce((sum, trade) => sum + trade.pnl, 0) /
       Math.max(
@@ -379,9 +466,9 @@ export default function Dashboard() {
             t("dashboard.analysisStrengthInstrument", { instrument: topInstrument }),
           ],
           risks: [
-            sortedMistakes[0]
+            topMistake
               ? t("dashboard.analysisRiskMistake", {
-                  mistake: sortedMistakes[0][0],
+                  mistake: topMistake,
                 })
               : t("dashboard.analysisRiskNone"),
             averageLoss < 0
@@ -396,19 +483,26 @@ export default function Dashboard() {
               : t("dashboard.analysisRiskStable"),
           ],
           actions: [
-            sortedMistakes[0]
-              ? t("dashboard.analysisActionMistake", {
-                  mistake: sortedMistakes[0][0],
+            topMistake === "Booked Profit Early"
+              ? t("dashboard.analysisActionBookedProfitEarly", {
+                  count: topMistakeCount,
+                  emotional: topMistakeNoteReview.emotional,
+                  planned: topMistakeNoteReview.planned,
                 })
+              : topMistake
+                ? t("dashboard.analysisActionMistake", {
+                    mistake: topMistake,
+                  })
+                : t("dashboard.analysisActionJournal"),
+            topMistake === "Booked Profit Early"
+              ? t("dashboard.analysisActionBookedProfitEarlyRule")
               : t("dashboard.analysisActionJournal"),
-            averageWin > 0 && averageLoss < 0
-              ? t("dashboard.analysisActionRiskReward", {
-                  win: Math.round(averageWin).toLocaleString(),
-                  loss: Math.abs(Math.round(averageLoss)).toLocaleString(),
-                })
-              : t("dashboard.analysisActionConsistency"),
             t("dashboard.analysisActionRange", {
               range: buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime")),
+              reviewed: noteReview.reviewed,
+              planned: noteReview.planned,
+              emotional: noteReview.emotional,
+              mixed: noteReview.mixed,
             }),
           ],
         };
