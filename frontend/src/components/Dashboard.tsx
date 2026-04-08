@@ -873,7 +873,7 @@ export default function Dashboard() {
                 </ul>
               </div>
 
-              <div className="dashboard-analysis__section">
+              <div className="dashboard-analysis__section dashboard-analysis__section--recommendations">
                 <h4>{t("dashboard.analysisRecommendations")}</h4>
                 <ul>
                   {requestedAnalysis.actions.map((item) => (

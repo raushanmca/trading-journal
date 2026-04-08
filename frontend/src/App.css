@@ -1904,6 +1904,23 @@ html {
   color: #dc2626;
 }
 
+.dashboard-analysis__section--recommendations {
+  background: linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(248, 250, 252, 0.96));
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.dashboard-analysis__section--recommendations h4 {
+  color: #b45309;
+}
+
+.dashboard-analysis__section--recommendations ul {
+  color: #92400e;
+}
+
+.dashboard-analysis__section--recommendations li::marker {
+  color: #d97706;
+}
+
 .dashboard-analysis__empty {
   padding: 18px 20px;
   border-radius: 18px;
