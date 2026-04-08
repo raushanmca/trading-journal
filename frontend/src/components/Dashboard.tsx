@@ -155,10 +155,11 @@ function getCurrentMonthRange() {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const cappedEnd = end > now ? now : end;
 
   return {
     from: formatInputDate(start),
-    to: formatInputDate(end),
+    to: formatInputDate(cappedEnd),
   };
 }
 
@@ -192,6 +193,7 @@ export default function Dashboard() {
   const { formatCompactDate, formatLongDate } = useAppDateFormatter();
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentMonthRange = getCurrentMonthRange();
+  const todayInputDate = formatInputDate(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
@@ -535,6 +537,24 @@ export default function Dashboard() {
     setRequestedAnalysis(null);
   }, [dateFrom, dateTo, trades]);
 
+  const handleDateFromChange = (value: string) => {
+    const nextFrom = value && value > todayInputDate ? todayInputDate : value;
+    setDateFrom(nextFrom);
+
+    if (dateTo && nextFrom && nextFrom > dateTo) {
+      setDateTo(nextFrom);
+    }
+  };
+
+  const handleDateToChange = (value: string) => {
+    const nextTo = value && value > todayInputDate ? todayInputDate : value;
+    setDateTo(nextTo);
+
+    if (dateFrom && nextTo && nextTo < dateFrom) {
+      setDateFrom(nextTo);
+    }
+  };
+
   const exportAnalysisPdf = () => {
     if (!requestedAnalysis) {
       return;
@@ -748,7 +768,8 @@ export default function Dashboard() {
           <input
             type="date"
             value={dateFrom}
-            onChange={(event) => setDateFrom(event.target.value)}
+            max={dateTo || todayInputDate}
+            onChange={(event) => handleDateFromChange(event.target.value)}
           />
         </label>
         <label className="dashboard-filters__field">
@@ -756,7 +777,9 @@ export default function Dashboard() {
           <input
             type="date"
             value={dateTo}
-            onChange={(event) => setDateTo(event.target.value)}
+            min={dateFrom || undefined}
+            max={todayInputDate}
+            onChange={(event) => handleDateToChange(event.target.value)}
           />
         </label>
         <button
