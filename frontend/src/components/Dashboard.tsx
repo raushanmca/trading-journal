@@ -312,12 +312,12 @@ export default function Dashboard() {
   // Calculate KPIs
   const totalTrades = filteredTrades.length;
   const totalPnL = filteredTrades.reduce((sum, t) => sum + t.pnl, 0);
+  const winningTrades = filteredTrades.filter((trade) => trade.pnl > 0);
+  const losingTrades = filteredTrades.filter((trade) => trade.pnl < 0);
   const winRate =
     totalTrades > 0
       ? Math.round(
-          (filteredTrades.filter((trade) => trade.pnl > 0).length /
-            totalTrades) *
-            100,
+          (winningTrades.length / totalTrades) * 100,
         )
       : 0;
 
@@ -419,6 +419,10 @@ export default function Dashboard() {
   const noteReview = analyzeTradeNotes(filteredTrades);
   const topMistake = sortedMistakes[0]?.[0] || "";
   const topMistakeCount = sortedMistakes[0]?.[1] || 0;
+  const topInstrumentCount =
+    instrumentFrequency.get(topInstrument === t("dashboard.notAvailable") ? "" : topInstrument) ||
+    instrumentFrequency.get(topInstrument) ||
+    0;
   const topMistakeTrades = topMistake
     ? filteredTrades.filter((trade) =>
         (trade.mistakes || []).some((mistake) => mistake.trim() === topMistake),
@@ -426,10 +430,10 @@ export default function Dashboard() {
     : [];
   const topMistakeNoteReview = analyzeTradeNotes(topMistakeTrades);
   const averageLoss =
-    filteredTrades.filter((trade) => trade.pnl < 0).reduce((sum, trade) => sum + trade.pnl, 0) /
+    losingTrades.reduce((sum, trade) => sum + trade.pnl, 0) /
       Math.max(
         1,
-        filteredTrades.filter((trade) => trade.pnl < 0).length,
+        losingTrades.length,
       ) || 0;
 
   const analysis: DashboardAnalysis =
@@ -461,24 +465,44 @@ export default function Dashboard() {
                   instrument: topInstrument,
                 }),
           strengths: [
-            t("dashboard.analysisStrengthWinRate", { winRate }),
-            t("dashboard.analysisStrengthRating", { rating: avgRating }),
-            t("dashboard.analysisStrengthInstrument", { instrument: topInstrument }),
+            t("dashboard.analysisStrengthWinRate", {
+              winRate,
+              wins: winningTrades.length,
+              total: totalTrades,
+            }),
+            t("dashboard.analysisStrengthRating", {
+              rating: avgRating,
+              total: totalTrades,
+            }),
+            t("dashboard.analysisStrengthInstrument", {
+              instrument: topInstrument,
+              count: topInstrumentCount,
+              total: totalTrades,
+            }),
           ],
           risks: [
             topMistake
               ? t("dashboard.analysisRiskMistake", {
                   mistake: topMistake,
+                  count: topMistakeCount,
                 })
               : t("dashboard.analysisRiskNone"),
             averageLoss < 0
               ? t("dashboard.analysisRiskLoss", {
                   loss: Math.abs(Math.round(averageLoss)).toLocaleString(),
+                  count: losingTrades.length,
                 })
               : t("dashboard.analysisRiskLowSample"),
-            latestTrades.length > 0 && latestMomentum < 0
+            latestTrades.length > 0
               ? t("dashboard.analysisRiskMomentum", {
                   pnl: Math.abs(latestMomentum).toLocaleString(),
+                  count: latestTrades.length,
+                  direction:
+                    latestMomentum < 0
+                      ? t("dashboard.analysisDirectionDown")
+                      : latestMomentum > 0
+                        ? t("dashboard.analysisDirectionUp")
+                        : t("dashboard.analysisDirectionFlat"),
                 })
               : t("dashboard.analysisRiskStable"),
           ],
