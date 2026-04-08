@@ -78,4 +78,6 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+UserSchema.index({ updatedAt: -1 });
+
 module.exports = mongoose.model("User", UserSchema);

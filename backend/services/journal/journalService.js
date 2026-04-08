@@ -88,6 +88,46 @@ function toDashboardJournalResponse(journal) {
   };
 }
 
+function toDashboardJournalResponseWithoutDecrypt(journal) {
+  const hasDashboardSnapshot =
+    Boolean(journal.dashboardDate) ||
+    Boolean(journal.dashboardInstrument) ||
+    Array.isArray(journal.dashboardMistakes);
+
+  if (hasDashboardSnapshot) {
+    return {
+      _id: journal._id,
+      date: journal.dashboardDate || "",
+      instrument: journal.dashboardInstrument || "",
+      pnl: journal.dashboardPnl || 0,
+      rating: journal.dashboardRating || 0,
+      mistakes: journal.dashboardMistakes || [],
+      createdAt: journal.createdAt,
+      updatedAt: journal.updatedAt,
+    };
+  }
+
+  const hasLegacyFields =
+    Boolean(journal.date) ||
+    Boolean(journal.instrument) ||
+    Array.isArray(journal.mistakes);
+
+  if (!hasLegacyFields) {
+    return null;
+  }
+
+  return {
+    _id: journal._id,
+    date: journal.date || "",
+    instrument: journal.instrument || "",
+    pnl: journal.pnl || 0,
+    rating: journal.rating || 0,
+    mistakes: journal.mistakes || [],
+    createdAt: journal.createdAt,
+    updatedAt: journal.updatedAt,
+  };
+}
+
 async function createJournalEntry(payload, user) {
   const normalizedPayload = {
     ...payload,
@@ -114,12 +154,66 @@ async function getJournalEntries(userId, options = {}) {
   if (view === "dashboard") {
     const journals = await Journal.find(
       { userId },
-      "_id createdAt updatedAt dashboardDate dashboardInstrument dashboardPnl dashboardRating dashboardMistakes encryptedEntry date instrument pnl rating mistakes",
+      "_id createdAt updatedAt dashboardDate dashboardInstrument dashboardPnl dashboardRating dashboardMistakes date instrument pnl rating mistakes",
     )
       .sort({ createdAt: -1 })
       .lean();
 
-    return journals.map(toDashboardJournalResponse);
+    const dashboardRows = journals.map((journal) =>
+      toDashboardJournalResponseWithoutDecrypt(journal),
+    );
+
+    const missingSnapshotIds = journals
+      .filter((_, index) => !dashboardRows[index])
+      .map((journal) => journal._id);
+
+    if (missingSnapshotIds.length === 0) {
+      return dashboardRows;
+    }
+
+    const fallbackJournals = await Journal.find(
+      { _id: { $in: missingSnapshotIds } },
+      "_id createdAt updatedAt dashboardDate dashboardInstrument dashboardPnl dashboardRating dashboardMistakes encryptedEntry date instrument pnl rating mistakes",
+    ).lean();
+
+    const fallbackById = new Map();
+    const backfillOperations = [];
+
+    fallbackJournals.forEach((journal) => {
+      const response = toDashboardJournalResponse(journal);
+      fallbackById.set(String(journal._id), response);
+
+      const needsBackfill =
+        !journal.dashboardDate &&
+        !journal.dashboardInstrument &&
+        !Array.isArray(journal.dashboardMistakes);
+
+      if (needsBackfill) {
+        backfillOperations.push({
+          updateOne: {
+            filter: { _id: journal._id },
+            update: {
+              $set: {
+                dashboardDate: response.date || "",
+                dashboardInstrument: response.instrument || "",
+                dashboardPnl: response.pnl || 0,
+                dashboardRating: response.rating || 0,
+                dashboardMistakes: response.mistakes || [],
+              },
+            },
+          },
+        });
+      }
+    });
+
+    if (backfillOperations.length > 0) {
+      await Journal.bulkWrite(backfillOperations, { ordered: false });
+    }
+
+    return journals.map(
+      (journal, index) =>
+        dashboardRows[index] || fallbackById.get(String(journal._id)),
+    );
   }
 
   const journals = await Journal.find({ userId }).sort({
