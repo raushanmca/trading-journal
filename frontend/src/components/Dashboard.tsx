@@ -222,6 +222,10 @@ export default function Dashboard() {
     mistakes: "",
   });
 
+  // Delete modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [tradeToDelete, setTradeToDelete] = useState<Trade | null>(null);
+
   const openPremiumQr = () => {
     window.dispatchEvent(new Event("open-premium-qr"));
   };
@@ -392,25 +396,29 @@ export default function Dashboard() {
     ));
   };
 
-  const handleDeleteClick = async (trade: Trade) => {
-    if (!trade._id) return;
+  const handleDeleteClick = (trade: Trade) => {
+    setTradeToDelete(trade);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (
-      !confirm(
-        "Are you sure you want to delete this journal entry? This cannot be undone.",
-      )
-    ) {
-      return;
-    }
+  const handleCloseDelete = () => {
+    setIsDeleteModalOpen(false);
+    setTradeToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tradeToDelete?._id) return;
+
+    setIsDeleteModalOpen(false);
+    const targetTrade = tradeToDelete!;
+    const authHeaders = getAuthHeaders();
 
     try {
-      const authHeaders = getAuthHeaders();
-      await axios.delete(`${BASE_URL}/api/journal/${trade._id}`, {
+      await axios.delete(`${BASE_URL}/api/journal/${targetTrade._id}`, {
         headers: authHeaders,
       });
 
-      // Optimistic remove
-      setTrades((prev) => prev.filter((t) => t._id !== trade._id));
+      setTrades((prev) => prev.filter((t) => t._id !== targetTrade._id));
       clearDashboardCache();
       showToast("Journal entry deleted", "success");
     } catch (err) {
@@ -1167,6 +1175,55 @@ export default function Dashboard() {
                 }
               >
                 {isSavingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && tradeToDelete && (
+        <div className="auth-modal">
+          <button
+            type="button"
+            className="auth-modal__overlay"
+            onClick={handleCloseDelete}
+            aria-label="Close delete modal"
+          />
+          <div
+            className="auth-modal__content dashboard-delete-modal"
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              className="auth-modal__close"
+              onClick={handleCloseDelete}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="auth-modal__eyebrow">Delete Journal Entry</div>
+            <h3 className="auth-modal__title">
+              Delete {tradeToDelete.instrument} ({tradeToDelete.date})?
+            </h3>
+            <p className="auth-modal__description">
+              This journal entry and all its data will be permanently deleted.
+              This cannot be undone.
+            </p>
+            <div className="auth-modal__actions">
+              <button
+                type="button"
+                className="auth-modal__button--ghost"
+                onClick={handleCloseDelete}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="auth-modal__button auth-modal__button--danger"
+                onClick={handleConfirmDelete}
+              >
+                Delete Entry
               </button>
             </div>
           </div>
