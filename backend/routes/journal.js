@@ -56,4 +56,20 @@ router.put("/:id", requireAuth, requireActiveTrial, async (req, res) => {
   }
 });
 
+// Delete single journal entry
+router.delete("/:id", requireAuth, requireActiveTrial, async (req, res) => {
+  try {
+    const {
+      deleteJournalEntry,
+    } = require("../services/journal/journalService");
+    const deletedCount = await deleteJournalEntry(req.params.id, req.user);
+    res.json({ deletedCount });
+  } catch (err) {
+    if (err.message === "Journal entry not found or access denied") {
+      return res.status(404).json({ error: err.message });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

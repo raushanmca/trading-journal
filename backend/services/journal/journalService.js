@@ -280,6 +280,14 @@ async function updateJournalEntry(id, updates, user) {
   return toJournalResponse(updatedJournal);
 }
 
+async function deleteJournalEntry(id, user) {
+  const result = await Journal.deleteOne({ _id: id, userId: user.userId });
+  if (result.deletedCount === 0) {
+    throw new Error("Journal entry not found or access denied");
+  }
+  return result.deletedCount;
+}
+
 async function deleteJournalEntries(userId) {
   const result = await Journal.deleteMany({ userId });
   return result.deletedCount || 0;
@@ -287,6 +295,7 @@ async function deleteJournalEntries(userId) {
 
 module.exports = {
   createJournalEntry,
+  deleteJournalEntry,
   deleteJournalEntries,
   getJournalEntries,
   getRecentJournalEntries,
