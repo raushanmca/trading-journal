@@ -167,17 +167,19 @@ export default function LessonsSidebar() {
         </button>
       </div>
 
-      {lessons.map((item) => (
-        <div key={item} style={{ position: "relative" }}>
-          <Item value={item} />
-          <button
-            onClick={() => removeLesson(item)}
-            className="sidebar-remove"
-          >
-            ×
-          </button>
-        </div>
-      ))}
+      <div className="sidebar-stack">
+        {lessons.map((item) => (
+          <div key={item} className="sidebar-item-row">
+            <Item value={item} />
+            <button
+              onClick={() => removeLesson(item)}
+              className="sidebar-remove"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -66,7 +66,17 @@ function DraggableCard({ index, moveCard, children }: DraggableCardProps) {
 
   return (
     <div ref={(node) => drag(drop(node))} className="draggable-card">
-      <div className="drag-handle">☰ {t("journal.dragHandle")}</div>
+      <div className="drag-handle" title={t("journal.dragHandle")}>
+        <span className="drag-handle__grip" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </span>
+        <span className="sr-only">{t("journal.dragHandle")}</span>
+      </div>
       {children}
     </div>
   );

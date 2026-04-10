@@ -102,18 +102,19 @@ export default function InstrumentsSidebar() {
         </button>
       </div>
 
-      {/* Instruments List */}
-      {instruments.map((item) => (
-        <div key={item} style={{ position: "relative" }}>
-          <Item value={item} />
-          <button
-            onClick={() => removeInstrument(item)}
-            className="sidebar-remove"
-          >
-            ×
-          </button>
-        </div>
-      ))}
+      <div className="sidebar-stack">
+        {instruments.map((item) => (
+          <div key={item} className="sidebar-item-row">
+            <Item value={item} />
+            <button
+              onClick={() => removeInstrument(item)}
+              className="sidebar-remove"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
