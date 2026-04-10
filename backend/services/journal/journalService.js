@@ -194,11 +194,7 @@ async function getJournalEntries(userId, options = {}) {
             filter: { _id: journal._id },
             update: {
               $set: {
-                dashboardDate: response.date || "",
-                dashboardInstrument: response.instrument || "",
-                dashboardPnl: response.pnl || 0,
-                dashboardRating: response.rating || 0,
-                dashboardMistakes: response.mistakes || [],
+                dashboardDate Ascending: dashboardDate, dashboardInstrument, dashboardPnl, dashboardRating, dashboardMistakes from response.
               },
             },
           },
@@ -232,6 +228,34 @@ async function getRecentJournalEntries(userId, limit = 5) {
   return journals.map(toJournalResponse);
 }
 
+async function updateJournalEntry(id, updates, user) {
+  const journal = await Journal.findOne({ _id: id, userId: user.userId });
+  if (!journal) {
+    throw new Error('Journal entry not found or access denied');
+  }
+
+  const normalizedUpdates = {
+    ...updates,
+    pnl: normalizePnl(updates.pnl, updates.tradeResult),
+  };
+
+  // Update dashboard summary fields (safe for dashboard edits)
+  journal.dashboardDate = normalizedUpdates.date || journal.dashboardDate;
+  journal.dashboardInstrument = normalizedUpdates.instrument || journal.dashboardInstrument;
+  journal.dashboardPnl = normalizedUpdates.pnl !== undefined ? normalizedUpdates.pnl : journal.dashboardPnl;
+  journal.dashboardRating = normalizedUpdates.rating !== undefined ? normalizedUpdates.rating : journal.dashboardRating;
+  journal.dashboardMistakes = normalizedUpdates.mistakes !== undefined ? normalizedUpdates.mistakes : journal.dashboardMistakes;
+
+  // If full payload provided, encrypt and update
+  if (normalizedUpdates.encryptedEntry || Object.keys(normalizedUpdates).some(key => !['date', 'instrument', 'pnl', 'rating', 'mistakes'].includes(key))) {
+    const fullPayload = normalizedUpdates.encryptedEntry ? normalizedUpdates : { ...journal.toObject(), ...normalizedUpdates };
+    journal.encryptedEntry = encryptJournalPayload(fullPayload);
+  }
+
+  const updatedJournal = await journal.save();
+  return toJournalResponse(updatedJournal);
+}
+
 async function deleteJournalEntries(userId) {
   const result = await Journal.deleteMany({ userId });
   return result.deletedCount || 0;
@@ -242,4 +266,5 @@ module.exports = {
   deleteJournalEntries,
   getJournalEntries,
   getRecentJournalEntries,
+  updateJournalEntry,
 };
