@@ -194,7 +194,11 @@ async function getJournalEntries(userId, options = {}) {
             filter: { _id: journal._id },
             update: {
               $set: {
-                dashboardDate Ascending: dashboardDate, dashboardInstrument, dashboardPnl, dashboardRating, dashboardMistakes from response.
+                dashboardDate: response.date,
+                dashboardInstrument: response.instrument,
+                dashboardPnl: response.pnl,
+                dashboardRating: response.rating,
+                dashboardMistakes: response.mistakes,
               },
             },
           },
@@ -212,9 +216,11 @@ async function getJournalEntries(userId, options = {}) {
     );
   }
 
-  const journals = await Journal.find({ userId }).sort({
-    createdAt: -1,
-  }).lean();
+  const journals = await Journal.find({ userId })
+    .sort({
+      createdAt: -1,
+    })
+    .lean();
 
   return journals.map(toJournalResponse);
 }
@@ -231,7 +237,7 @@ async function getRecentJournalEntries(userId, limit = 5) {
 async function updateJournalEntry(id, updates, user) {
   const journal = await Journal.findOne({ _id: id, userId: user.userId });
   if (!journal) {
-    throw new Error('Journal entry not found or access denied');
+    throw new Error("Journal entry not found or access denied");
   }
 
   const normalizedUpdates = {
@@ -241,14 +247,32 @@ async function updateJournalEntry(id, updates, user) {
 
   // Update dashboard summary fields (safe for dashboard edits)
   journal.dashboardDate = normalizedUpdates.date || journal.dashboardDate;
-  journal.dashboardInstrument = normalizedUpdates.instrument || journal.dashboardInstrument;
-  journal.dashboardPnl = normalizedUpdates.pnl !== undefined ? normalizedUpdates.pnl : journal.dashboardPnl;
-  journal.dashboardRating = normalizedUpdates.rating !== undefined ? normalizedUpdates.rating : journal.dashboardRating;
-  journal.dashboardMistakes = normalizedUpdates.mistakes !== undefined ? normalizedUpdates.mistakes : journal.dashboardMistakes;
+  journal.dashboardInstrument =
+    normalizedUpdates.instrument || journal.dashboardInstrument;
+  journal.dashboardPnl =
+    normalizedUpdates.pnl !== undefined
+      ? normalizedUpdates.pnl
+      : journal.dashboardPnl;
+  journal.dashboardRating =
+    normalizedUpdates.rating !== undefined
+      ? normalizedUpdates.rating
+      : journal.dashboardRating;
+  journal.dashboardMistakes =
+    normalizedUpdates.mistakes !== undefined
+      ? normalizedUpdates.mistakes
+      : journal.dashboardMistakes;
 
   // If full payload provided, encrypt and update
-  if (normalizedUpdates.encryptedEntry || Object.keys(normalizedUpdates).some(key => !['date', 'instrument', 'pnl', 'rating', 'mistakes'].includes(key))) {
-    const fullPayload = normalizedUpdates.encryptedEntry ? normalizedUpdates : { ...journal.toObject(), ...normalizedUpdates };
+  if (
+    normalizedUpdates.encryptedEntry ||
+    Object.keys(normalizedUpdates).some(
+      (key) =>
+        !["date", "instrument", "pnl", "rating", "mistakes"].includes(key),
+    )
+  ) {
+    const fullPayload = normalizedUpdates.encryptedEntry
+      ? normalizedUpdates
+      : { ...journal.toObject(), ...normalizedUpdates };
     journal.encryptedEntry = encryptJournalPayload(fullPayload);
   }
 
