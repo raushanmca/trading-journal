@@ -16,6 +16,7 @@ import { showToast } from "../utils/toast";
 import {
   readDashboardCache,
   writeDashboardCache,
+  clearDashboardCache,
 } from "../features/dashboard/dashboardCache";
 import { RenewAccessActions } from "../features/subscription/components/RenewAccessActions";
 const BASE_URL = getApiBaseUrl();
@@ -410,6 +411,7 @@ export default function Dashboard() {
 
       // Optimistic remove
       setTrades((prev) => prev.filter((t) => t._id !== trade._id));
+      clearDashboardCache();
       showToast("Journal entry deleted", "success");
     } catch (err) {
       console.error(err);
@@ -470,11 +472,7 @@ export default function Dashboard() {
           t._id === editTrade._id ? { ...t, ...response.data } : t,
         ),
       );
-      writeDashboardCache(
-        trades.map((t) =>
-          t._id === editTrade._id ? { ...t, ...response.data } : t,
-        ),
-      );
+      clearDashboardCache();
 
       showToast("Journal entry updated successfully", "success");
       handleCloseEdit();
