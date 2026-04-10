@@ -29,9 +29,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import "./Dashboard.css"; // We'll create this
+import "./Dashboard.css";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -182,9 +181,9 @@ function buildDateRangeLabel(from: string, to: string, fallback: string) {
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
+    .replaceAll("<", "<")
+    .replaceAll(">", ">")
+    .replaceAll('"', '"')
     .replaceAll("'", "&#39;");
 }
 
@@ -212,6 +211,15 @@ export default function Dashboard() {
   const [dateTo, setDateTo] = useState(currentMonthRange.to);
   const [requestedAnalysis, setRequestedAnalysis] =
     useState<DashboardAnalysis | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTrade, setEditTrade] = useState<Trade | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    instrument: "",
+    pnl: "",
+    rating: 0,
+    mistakes: "",
+  });
 
   const openPremiumQr = () => {
     window.dispatchEvent(new Event("open-premium-qr"));
@@ -318,9 +326,7 @@ export default function Dashboard() {
   const losingTrades = filteredTrades.filter((trade) => trade.pnl < 0);
   const winRate =
     totalTrades > 0
-      ? Math.round(
-          (winningTrades.length / totalTrades) * 100,
-        )
+      ? Math.round((winningTrades.length / totalTrades) * 100)
       : 0;
 
   const avgRating =
@@ -385,6 +391,106 @@ export default function Dashboard() {
     ));
   };
 
+  const handleDeleteClick = async (trade: Trade) => {
+    if (!trade._id) return;
+
+    if (
+      !confirm(
+        "Are you sure you want to delete this journal entry? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const authHeaders = getAuthHeaders();
+      await axios.delete(`${BASE_URL}/api/journal/${trade._id}`, {
+        headers: authHeaders,
+      });
+
+      // Optimistic remove
+      setTrades((prev) => prev.filter((t) => t._id !== trade._id));
+      showToast("Journal entry deleted", "success");
+    } catch (err) {
+      console.error(err);
+      showToast(
+        axios.isAxiosError(err)
+          ? err.response?.data?.error || "Delete failed"
+          : "Delete failed",
+        "error",
+      );
+    }
+  };
+
+  const handleEditClick = (trade: Trade) => {
+    setEditTrade(trade);
+    setEditFormData({
+      instrument: trade.instrument || "",
+      pnl: trade.pnl?.toString() || "",
+      rating: trade.rating || 0,
+      mistakes: (trade.mistakes || []).join(", "),
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setEditTrade(null);
+    setEditFormData({ instrument: "", pnl: "", rating: 0, mistakes: "" });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTrade?._id || !editTrade) return;
+
+    setIsSavingEdit(true);
+
+    try {
+      const pnlNum = parseFloat(editFormData.pnl) || 0;
+      const mistakesArr = editFormData.mistakes
+        .split(",")
+        .map((m) => m.trim())
+        .filter((m) => m);
+
+      const updateData = {
+        instrument: editFormData.instrument,
+        pnl: pnlNum,
+        rating: editFormData.rating,
+        mistakes: mistakesArr,
+      };
+
+      const authHeaders = getAuthHeaders();
+      const response = await axios.put(
+        `${BASE_URL}/api/journal/${editTrade._id}`,
+        updateData,
+        { headers: authHeaders },
+      );
+
+      setTrades((prev) =>
+        prev.map((t) =>
+          t._id === editTrade._id ? { ...t, ...response.data } : t,
+        ),
+      );
+      writeDashboardCache(
+        trades.map((t) =>
+          t._id === editTrade._id ? { ...t, ...response.data } : t,
+        ),
+      );
+
+      showToast("Journal entry updated successfully", "success");
+      handleCloseEdit();
+    } catch (err) {
+      console.error(err);
+      showToast(
+        axios.isAxiosError(err)
+          ? err.response?.data?.error || "Update failed"
+          : "Update failed",
+        "error",
+      );
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const mistakeFrequency = new Map<string, number>();
   filteredTrades.forEach((trade) => {
     (trade.mistakes || []).forEach((mistake) => {
@@ -413,16 +519,22 @@ export default function Dashboard() {
   });
 
   const topInstrument =
-    [...instrumentFrequency.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ||
-    t("dashboard.notAvailable");
+    [...instrumentFrequency.entries()].sort(
+      (left, right) => right[1] - left[1],
+    )[0]?.[0] || t("dashboard.notAvailable");
 
   const latestTrades = filteredTrades.slice(0, 3);
-  const latestMomentum = latestTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+  const latestMomentum = latestTrades.reduce(
+    (sum, trade) => sum + trade.pnl,
+    0,
+  );
   const noteReview = analyzeTradeNotes(filteredTrades);
   const topMistake = sortedMistakes[0]?.[0] || "";
   const topMistakeCount = sortedMistakes[0]?.[1] || 0;
   const topInstrumentCount =
-    instrumentFrequency.get(topInstrument === t("dashboard.notAvailable") ? "" : topInstrument) ||
+    instrumentFrequency.get(
+      topInstrument === t("dashboard.notAvailable") ? "" : topInstrument,
+    ) ||
     instrumentFrequency.get(topInstrument) ||
     0;
   const topMistakeTrades = topMistake
@@ -433,10 +545,7 @@ export default function Dashboard() {
   const topMistakeNoteReview = analyzeTradeNotes(topMistakeTrades);
   const averageLoss =
     losingTrades.reduce((sum, trade) => sum + trade.pnl, 0) /
-      Math.max(
-        1,
-        losingTrades.length,
-      ) || 0;
+      Math.max(1, losingTrades.length) || 0;
 
   const analysis: DashboardAnalysis =
     filteredTrades.length === 0
@@ -524,7 +633,11 @@ export default function Dashboard() {
               ? t("dashboard.analysisActionBookedProfitEarlyRule")
               : t("dashboard.analysisActionJournal"),
             t("dashboard.analysisActionRange", {
-              range: buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime")),
+              range: buildDateRangeLabel(
+                dateFrom,
+                dateTo,
+                t("dashboard.allTime"),
+              ),
               reviewed: noteReview.reviewed,
               planned: noteReview.planned,
               emotional: noteReview.emotional,
@@ -561,7 +674,11 @@ export default function Dashboard() {
     }
 
     const reportTitle = t("dashboard.analysisTitle");
-    const reportRange = buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime"));
+    const reportRange = buildDateRangeLabel(
+      dateFrom,
+      dateTo,
+      t("dashboard.allTime"),
+    );
     const chartImage = chartRef.current?.toBase64Image() || "";
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
@@ -588,7 +705,7 @@ export default function Dashboard() {
         </head>
         <body>
           <h1>${escapeHtml(reportTitle)}</h1>
-          <p class="meta">${escapeHtml(reportRange)}</p>
+          <p className="meta">${escapeHtml(reportRange)}</p>
           ${
             chartImage
               ? `
@@ -653,7 +770,9 @@ export default function Dashboard() {
     return (
       <div className="dashboard-page">
         <div className="dashboard-banner dashboard-banner--danger">
-          <div className="dashboard-banner__label">{t("dashboard.trialExpired")}</div>
+          <div className="dashboard-banner__label">
+            {t("dashboard.trialExpired")}
+          </div>
           <h1>{t("dashboard.trialExpiredTitle")}</h1>
           <p style={{ color: "#7c2d12", lineHeight: 1.7 }}>
             {t("dashboard.trialExpiredBody", {
@@ -673,7 +792,9 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <div className="dashboard-hero">
         <div>
-          <div className="dashboard-hero__eyebrow">{t("dashboard.performanceOverview")}</div>
+          <div className="dashboard-hero__eyebrow">
+            {t("dashboard.performanceOverview")}
+          </div>
           <h1>{t("dashboard.title")}</h1>
           <p>{t("dashboard.subtitle")}</p>
         </div>
@@ -711,9 +832,7 @@ export default function Dashboard() {
           <h2 className="dashboard-banner__heading">
             {t("dashboard.premiumTitle")}
           </h2>
-          <p className="dashboard-banner__body">
-            {t("dashboard.premiumBody")}
-          </p>
+          <p className="dashboard-banner__body">{t("dashboard.premiumBody")}</p>
           <div className="dashboard-banner__actions">
             <button
               type="button"
@@ -727,14 +846,18 @@ export default function Dashboard() {
       ) : null}
       {isOwner ? (
         <div className="dashboard-banner">
-          <div className="dashboard-banner__label">{t("dashboard.ownerAccessLabel")}</div>
+          <div className="dashboard-banner__label">
+            {t("dashboard.ownerAccessLabel")}
+          </div>
           {t("dashboard.ownerAccessBody", {
             email: userEmail || t("dashboard.yourAccount"),
           })}
         </div>
       ) : shouldShowTrialBanner ? (
         <div className="dashboard-banner dashboard-banner--trial">
-          <div className="dashboard-banner__label">{t("dashboard.trialAccess")}</div>
+          <div className="dashboard-banner__label">
+            {t("dashboard.trialAccess")}
+          </div>
           <div className="dashboard-banner__value">
             {trialDaysRemaining === 0
               ? t("dashboard.trialEnded")
@@ -745,7 +868,9 @@ export default function Dashboard() {
           </div>
           <div className="dashboard-banner__meta">
             {t("dashboard.trialEndDate", {
-              date: trialEndsAt ? formatLongDate(trialEndsAt) : t("dashboard.notAvailable"),
+              date: trialEndsAt
+                ? formatLongDate(trialEndsAt)
+                : t("dashboard.notAvailable"),
             })}
           </div>
           <div className="dashboard-banner__actions">
@@ -753,12 +878,20 @@ export default function Dashboard() {
           </div>
         </div>
       ) : null}
-      {errorMessage ? <div className="dashboard-banner dashboard-banner--danger">{errorMessage}</div> : null}
+      {errorMessage ? (
+        <div className="dashboard-banner dashboard-banner--danger">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <div className="dashboard-filters">
         <div className="dashboard-filters__copy">
-          <div className="dashboard-panel__title">{t("dashboard.reportRange")}</div>
-          <p className="dashboard-panel__subtitle">{t("dashboard.reportRangeSubtitle")}</p>
+          <div className="dashboard-panel__title">
+            {t("dashboard.reportRange")}
+          </div>
+          <p className="dashboard-panel__subtitle">
+            {t("dashboard.reportRangeSubtitle")}
+          </p>
           <span className="dashboard-range-pill">
             {buildDateRangeLabel(dateFrom, dateTo, t("dashboard.allTime"))}
           </span>
@@ -807,7 +940,9 @@ export default function Dashboard() {
 
       <div className="dashboard-kpis">
         <div className="dashboard-kpi">
-          <span className="dashboard-kpi__label">{t("dashboard.totalTrades")}</span>
+          <span className="dashboard-kpi__label">
+            {t("dashboard.totalTrades")}
+          </span>
           <span className="dashboard-kpi__value">{totalTrades}</span>
         </div>
 
@@ -815,7 +950,9 @@ export default function Dashboard() {
           <span className="dashboard-kpi__label">{t("dashboard.netPnl")}</span>
           <span
             className={`dashboard-kpi__value ${
-              totalPnL >= 0 ? "dashboard-kpi__value--positive" : "dashboard-kpi__value--negative"
+              totalPnL >= 0
+                ? "dashboard-kpi__value--positive"
+                : "dashboard-kpi__value--negative"
             }`}
           >
             ₹{totalPnL.toLocaleString()}
@@ -828,7 +965,9 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-kpi">
-          <span className="dashboard-kpi__label">{t("dashboard.avgRating")}</span>
+          <span className="dashboard-kpi__label">
+            {t("dashboard.avgRating")}
+          </span>
           <span className="dashboard-kpi__value">{avgRating} ★</span>
         </div>
       </div>
@@ -836,8 +975,12 @@ export default function Dashboard() {
       <div className="dashboard-analysis">
         <div className="dashboard-analysis__head">
           <div>
-            <h3 className="dashboard-panel__title">{t("dashboard.analysisTitle")}</h3>
-            <p className="dashboard-panel__subtitle">{t("dashboard.analysisSubtitle")}</p>
+            <h3 className="dashboard-panel__title">
+              {t("dashboard.analysisTitle")}
+            </h3>
+            <p className="dashboard-panel__subtitle">
+              {t("dashboard.analysisSubtitle")}
+            </p>
           </div>
           <div className="dashboard-analysis__actions">
             <button
@@ -927,10 +1070,119 @@ export default function Dashboard() {
         ) : null}
       </div>
 
+      {isEditModalOpen && editTrade && (
+        <div className="auth-modal">
+          <button
+            type="button"
+            className="auth-modal__overlay"
+            onClick={handleCloseEdit}
+            aria-label="Close edit modal"
+          />
+          <div
+            className="auth-modal__content dashboard-edit-modal"
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              className="auth-modal__close"
+              onClick={handleCloseEdit}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="auth-modal__eyebrow">Edit Journal Entry</div>
+            <h3 className="auth-modal__title">Update {editTrade.instrument}</h3>
+            <div className="dashboard-edit-form">
+              <label>
+                Instrument
+                <input
+                  type="text"
+                  value={editFormData.instrument}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      instrument: e.target.value,
+                    })
+                  }
+                  maxLength={50}
+                />
+              </label>
+              <label>
+                PnL (₹)
+                <input
+                  type="number"
+                  value={editFormData.pnl}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, pnl: e.target.value })
+                  }
+                  step="0.01"
+                />
+              </label>
+              <label>
+                Rating
+                <div className="dashboard-rating-stars">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`star-btn ${editFormData.rating >= star ? "filled" : ""}`}
+                      onClick={() =>
+                        setEditFormData({ ...editFormData, rating: star })
+                      }
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </label>
+              <label>
+                Mistakes (comma separated)
+                <textarea
+                  value={editFormData.mistakes}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      mistakes: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  maxLength={500}
+                />
+              </label>
+            </div>
+            <div className="auth-modal__actions">
+              <button
+                type="button"
+                className="auth-modal__button--ghost"
+                onClick={handleCloseEdit}
+                disabled={isSavingEdit}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="auth-modal__button"
+                onClick={handleSaveEdit}
+                disabled={
+                  isSavingEdit || !editFormData.instrument || !editFormData.pnl
+                }
+              >
+                {isSavingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="dashboard-grid">
         <div className="dashboard-chart">
-          <h3 className="dashboard-panel__title">{t("dashboard.chartTitle")}</h3>
-          <p className="dashboard-panel__subtitle">{t("dashboard.chartSubtitle")}</p>
+          <h3 className="dashboard-panel__title">
+            {t("dashboard.chartTitle")}
+          </h3>
+          <p className="dashboard-panel__subtitle">
+            {t("dashboard.chartSubtitle")}
+          </p>
           {filteredTrades.length > 0 ? (
             <Line ref={chartRef} data={chartData} options={chartOptions} />
           ) : (
@@ -939,39 +1191,61 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-trades">
-          <h3 className="dashboard-panel__title">{t("dashboard.recentTrades")}</h3>
-          <p className="dashboard-panel__subtitle">{t("dashboard.recentTradesSubtitle")}</p>
+          <h3 className="dashboard-panel__title">
+            {t("dashboard.recentTrades")}
+          </h3>
+          <p className="dashboard-panel__subtitle">
+            {t("dashboard.recentTradesSubtitle")}
+          </p>
           {filteredTrades.length === 0 ? (
-            <div className="dashboard-empty">{t("dashboard.noTradesRecorded")}</div>
+            <div className="dashboard-empty">
+              {t("dashboard.noTradesRecorded")}
+            </div>
           ) : (
             <div className="dashboard-trades__list">
-              {filteredTrades
-                .slice(0, 8)
-                .map((trade, index) => (
-                  <div
-                    key={trade._id || index}
-                    className="dashboard-trade"
-                  >
-                    <div>
-                      <div className="dashboard-trade__instrument">{trade.instrument}</div>
-                      <div className="dashboard-trade__date">
-                        {formatCompactDate(trade.date)}
-                      </div>
+              {filteredTrades.slice(0, 8).map((trade, index) => (
+                <div key={trade._id || index} className="dashboard-trade">
+                  <div>
+                    <div className="dashboard-trade__instrument">
+                      {trade.instrument}
                     </div>
-
-                    <div className="dashboard-trade__meta">
-                      <div
-                        className="dashboard-trade__pnl"
-                        data-positive={trade.pnl >= 0}
-                      >
-                        ₹{trade.pnl}
-                      </div>
-                      <div className="dashboard-trade__rating">
-                        {renderStars(trade.rating)}
-                      </div>
+                    <div className="dashboard-trade__date">
+                      {formatCompactDate(trade.date)}
                     </div>
                   </div>
-                ))}
+                  <div className="dashboard-trade__meta">
+                    <div
+                      className="dashboard-trade__pnl"
+                      data-positive={trade.pnl >= 0}
+                    >
+                      ₹{trade.pnl}
+                    </div>
+                    <div className="dashboard-trade__rating">
+                      {renderStars(trade.rating)}
+                    </div>
+                    <button
+                      type="button"
+                      className="dashboard-trade__edit"
+                      onClick={() => handleEditClick(trade)}
+                      disabled={trialExpired}
+                      title={trialExpired ? "Upgrade for edits" : "Edit entry"}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="dashboard-trade__delete"
+                      onClick={() => handleDeleteClick(trade)}
+                      disabled={trialExpired}
+                      title={
+                        trialExpired ? "Upgrade for deletes" : "Delete entry"
+                      }
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
