@@ -245,7 +245,7 @@ async function updateJournalEntry(id, updates, user) {
     pnl: normalizePnl(updates.pnl, updates.tradeResult),
   };
 
-  // Update dashboard summary fields (safe for dashboard edits)
+  // Update dashboard summary fields
   journal.dashboardDate = normalizedUpdates.date || journal.dashboardDate;
   journal.dashboardInstrument =
     normalizedUpdates.instrument || journal.dashboardInstrument;
@@ -262,19 +262,25 @@ async function updateJournalEntry(id, updates, user) {
       ? normalizedUpdates.mistakes
       : journal.dashboardMistakes;
 
-  // If full payload provided, encrypt and update
-  if (
-    normalizedUpdates.encryptedEntry ||
-    Object.keys(normalizedUpdates).some(
-      (key) =>
-        !["date", "instrument", "pnl", "rating", "mistakes"].includes(key),
-    )
-  ) {
-    const fullPayload = normalizedUpdates.encryptedEntry
-      ? normalizedUpdates
-      : { ...journal.toObject(), ...normalizedUpdates };
-    journal.encryptedEntry = encryptJournalPayload(fullPayload);
+  // Always decrypt, merge updates to full payload, re-encrypt for consistency
+  let decryptedPayload = null;
+  if (journal.encryptedEntry) {
+    try {
+      decryptedPayload = decryptJournalPayload(journal.encryptedEntry);
+    } catch (error) {
+      console.error("Failed to decrypt:", error);
+    }
   }
+  const fullPayload = decryptedPayload || buildLegacyJournalPayload(journal);
+  Object.assign(fullPayload, {
+    date: journal.dashboardDate,
+    instrument: journal.dashboardInstrument,
+    pnl: journal.dashboardPnl,
+    rating: journal.dashboardRating,
+    mistakes: journal.dashboardMistakes,
+  });
+
+  journal.encryptedEntry = encryptJournalPayload(fullPayload);
 
   const updatedJournal = await journal.save();
   return toJournalResponse(updatedJournal);
