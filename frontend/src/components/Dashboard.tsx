@@ -1248,11 +1248,9 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-trades">
-          <h3 className="dashboard-panel__title">
-            {t("dashboard.recentTrades")}
-          </h3>
+          <h3 className="dashboard-panel__title">Trades in Selected Range</h3>
           <p className="dashboard-panel__subtitle">
-            {t("dashboard.recentTradesSubtitle")}
+            All trades within your selected date range
           </p>
           {filteredTrades.length === 0 ? (
             <div className="dashboard-empty">
