@@ -310,19 +310,21 @@ export default function Dashboard() {
     trialDaysRemaining !== null &&
     (renewalCount === 0 || trialDaysRemaining <= 15);
 
-  const filteredTrades = trades.filter((trade) => {
-    const tradeDate = trade.date ? formatInputDate(new Date(trade.date)) : "";
+  const filteredTrades = trades
+    .filter((trade) => {
+      const tradeDate = trade.date ? formatInputDate(new Date(trade.date)) : "";
 
-    if (dateFrom && tradeDate < dateFrom) {
-      return false;
-    }
+      if (dateFrom && tradeDate < dateFrom) {
+        return false;
+      }
 
-    if (dateTo && tradeDate > dateTo) {
-      return false;
-    }
+      if (dateTo && tradeDate > dateTo) {
+        return false;
+      }
 
-    return true;
-  });
+      return true;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Calculate KPIs
   const totalTrades = filteredTrades.length;
@@ -529,7 +531,7 @@ export default function Dashboard() {
       (left, right) => right[1] - left[1],
     )[0]?.[0] || t("dashboard.notAvailable");
 
-  const latestTrades = filteredTrades.slice(0, 3);
+  const latestTrades = filteredTrades.slice(0, 3); // Keep top 3 for momentum calc
   const latestMomentum = latestTrades.reduce(
     (sum, trade) => sum + trade.pnl,
     0,
@@ -1258,7 +1260,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="dashboard-trades__list">
-              {filteredTrades.slice(0, 8).map((trade, index) => (
+              {filteredTrades.map((trade, index) => (
                 <div key={trade._id || index} className="dashboard-trade">
                   <div>
                     <div className="dashboard-trade__instrument">
